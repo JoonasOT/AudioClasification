@@ -55,7 +55,7 @@ class Maybe(Generic[T]):
             except Exception as exp:
                 stack_trace = traceback.format_stack()
                 stack_trace.reverse()
-                return Maybe.Empty(str(exp) + f". Traceback:\n{''.join(stack_trace[2:])}")
+                return Maybe.Empty(str(exp) + f". Traceback:\n{''.join(stack_trace[1:])}")
 
     def transform(self, f: Callable[[T], V], unpack: bool = False) -> Maybe[Union[V, Maybe.Empty]]:
         """Apply the given function and wrap the value in a new Maybe
