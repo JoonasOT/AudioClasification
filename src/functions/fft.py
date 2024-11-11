@@ -7,7 +7,7 @@ from numpy import abs, log10
 def fft(audio: AudioSignal) -> SignalWithTransform:
     N = len(audio.signal)
     T = fftshift(fft_(audio.signal, n=N))
-    T /= N
+    T /= N // 2
     return SignalWithTransform(audio, abs(T))
 
 
