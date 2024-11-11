@@ -8,16 +8,17 @@ from src.functions.plotting import plotSignal, plotTransfrom, keepPlotsOpen
 
 
 def main():
-    print(
-        Maybe("./data/audio2.wav")
-            .transform(getAudioSignal)
-            .run(AudioSignal.play)
-            .transform(fft)
-            .run(plotSignal)
-            .run(plotTransfrom)
-            .transform(amplitudeToDB)
-            .run(plotTransfrom)
-    )
+    [
+        Maybe(file)
+        .transform(getAudioSignal)
+        .run(AudioSignal.play)
+        .transform(fft)
+        .run(plotSignal)
+        .run(plotTransfrom)
+        .transform(amplitudeToDB)
+        .run(plotTransfrom)
+        for file in ["./data/audio1.wav", "./data/audio2.wav", "./data/x.wav"]
+    ]
     keepPlotsOpen()
 
 
