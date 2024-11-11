@@ -13,6 +13,7 @@ getAudioSignal = lambda file: AudioSignal(file)
 class AudioSignal:
 
     def __init__(self, file: str):
+        self.name = file
         content = read_wav(file)
         self.samplerate: int = content[0]
         self.signal: ndarray = content[1]

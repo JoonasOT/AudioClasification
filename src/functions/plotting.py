@@ -15,6 +15,7 @@ def plotSignal(audio: Union[AudioSignal, SignalWithTransform]) -> None:
     x_axis = np.linspace(0, (1 / audio.samplerate) * len(audio.signal), len(audio.signal))
     plt.plot(x_axis, audio.signal)
     plt.grid()
+    plt.title(audio.name)
     plt.show(block=False)
 
 
@@ -30,6 +31,7 @@ def plotTransfrom(st: SignalWithTransform, positiveOnly=True) -> None:
         x_axis = np.linspace(-audio.samplerate / 2, audio.samplerate / 2, len(transform))
         plt.plot(x_axis, transform)
     plt.grid()
+    plt.title(audio.name)
     plt.show(block=False)
 
 
