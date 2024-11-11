@@ -3,7 +3,15 @@ from numpy import ndarray
 from sounddevice import play as playSound, wait as waitForSound
 
 
+def waitForSounds():
+    waitForSound()
+
+
+getAudioSignal = lambda file: AudioSignal(file)
+
+
 class AudioSignal:
+
     def __init__(self, file: str):
         content = read_wav(file)
         self.samplerate: int = content[0]

@@ -9,7 +9,8 @@ from src.functions.plotting import plotSignal, plotTransfrom, keepPlotsOpen
 
 def main():
     print(
-        Maybe(AudioSignal("./data/audio2.wav"))
+        Maybe("./data/audio2.wav")
+            .transform(getAudioSignal)
             .run(AudioSignal.play)
             .transform(fft)
             .run(plotSignal)
