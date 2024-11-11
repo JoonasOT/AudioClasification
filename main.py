@@ -3,7 +3,7 @@ from src.structures.audiosignal import *
 from src.structures.maybe import Maybe
 
 # Required functions:
-from src.functions.fft import fft, amplitudeToDB
+from src.functions.transfroms import fft, amplitudeToDB
 from src.functions.plotting import plotSignal, plotTransfrom, keepPlotsOpen
 
 
