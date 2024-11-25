@@ -5,13 +5,14 @@ from src.dependencies.dependencies import *
 # Required functions:
 from src.functions.transfroms import *
 from src.functions.plotting import *
+from src.functions.file_management import *
 
 
-FILES: Final[list[str]] = ["./data/audio1.wav", "./data/audio2.wav", "./data/x.wav"]
+DIRECTORY: Final[str] = "./data"
 
 
 def main():
-    for file in FILES:
+    for file in onlyWavFiles(getFilesInDir("./data")):
         audio = Maybe(file).construct(AudioSignal, False)
         audio\
             .run(plotSignal)\
