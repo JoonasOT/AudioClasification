@@ -1,1 +1,1 @@
-from FunctionalMaybe import FunctionalMaybe as Maybe
+from .FunctionalMaybe import FunctionalMaybe as Maybe
