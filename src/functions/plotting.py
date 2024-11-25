@@ -1,15 +1,10 @@
-from typing import Union
 import numpy as np
 import matplotlib.pyplot as plt
 
 from ..structures.audiosignal import AudioSignal
-from ..structures.helpers import SignalWithTransform
 
 
-def plotSignal(audio: Union[AudioSignal, SignalWithTransform]) -> None:
-    if isinstance(audio, SignalWithTransform):
-        audio = audio.audio
-
+def plotSignal(audio: AudioSignal) -> None:
     assert isinstance(audio, AudioSignal)
     plt.figure()
     x_axis = np.linspace(0, (1 / audio.samplerate) * len(audio.signal), len(audio.signal))
@@ -19,20 +14,16 @@ def plotSignal(audio: Union[AudioSignal, SignalWithTransform]) -> None:
     plt.show(block=False)
 
 
-def plotTransfrom(st: SignalWithTransform, positiveOnly=True) -> None:
-    assert isinstance(st, SignalWithTransform)
-    audio, transform = st.audio, st.transfrom
+def plotSpectrum(fft_: np.ndarray, fs: float, title="") -> None:
     plt.figure()
-    if positiveOnly:
-        N = len(transform)
-        x_axis = np.linspace(0, audio.samplerate / 2, N // 2)
-        plt.plot(x_axis, transform[N // 2 if not N % 2 else N // 2 + 1:])
-    else:
-        x_axis = np.linspace(-audio.samplerate / 2, audio.samplerate / 2, len(transform))
-        plt.plot(x_axis, transform)
+    plt.plot(np.linspace(0, fs / 2, len(fft_)), fft_)
     plt.grid()
-    plt.title(audio.name)
+    plt.title(title)
     plt.show(block=False)
+
+
+def plotSpectrogram():
+    pass
 
 
 def keepPlotsOpen():

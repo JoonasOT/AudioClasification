@@ -1,15 +1,18 @@
 from ..structures.audiosignal import AudioSignal
-from ..structures.helpers import SignalWithTransform
-from scipy.fftpack import fft as fft_, fftshift
-from numpy import abs, log10
+from scipy.fftpack import fft as fft_
+import numpy as np
 
 
-def fft(audio: AudioSignal) -> SignalWithTransform:
-    N = len(audio.signal)
-    T = fftshift(fft_(audio.signal, n=N))
-    T /= N // 2
-    return SignalWithTransform(audio, abs(T))
+def fft(audio: AudioSignal, nfft: int = None) -> np.ndarray:
+    if not nfft:
+        nfft = len(audio.signal)
+    T = fft_(audio.signal, n=nfft)
+    return T[:len(T) // 2]
 
 
-def amplitudeToDB(st: SignalWithTransform) -> SignalWithTransform:
-    return SignalWithTransform(st.audio, 10 * log10(st.transfrom))
+def getAmplitude(T: np.ndarray) -> np.ndarray:
+    return np.abs(T)
+
+
+def amplitudeToDB(T: np.ndarray) -> np.ndarray:
+    return 10 * np.log10(T)
