@@ -1,0 +1,3 @@
+[submodule "FunctionalMaybe"]
+	path = src/dependencies/FunctionalMaybe
+	url = https://github.com/JoonasOT/FunctionalMaybe.git

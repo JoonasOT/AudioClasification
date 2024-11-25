@@ -1,6 +1,6 @@
 # Require Structures:
+from src.dependencies.dependencies import *
 from src.structures.audiosignal import *
-from src.structures.maybe import Maybe
 
 # Required functions:
 from src.functions.transfroms import fft, amplitudeToDB
