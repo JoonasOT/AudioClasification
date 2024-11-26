@@ -27,11 +27,12 @@ def stft(audio: AudioSignal, winLen: float, hopLen: float) -> np.ndarray:
     )
 
 
-def mfcc(audio: AudioSignal, winLen: float, hopLen: float) -> np.ndarray:
+def mfcc(audio: AudioSignal, nMFCC, winLen: float, hopLen: float) -> np.ndarray:
     ts = __timeToSamples(audio)
     return librosa.feature.mfcc(
         y=audio.signal,
         sr=audio.samplerate,
+        n_mfcc=nMFCC,
         n_fft=ts(winLen),
         win_length=ts(winLen),
         hop_length=ts(hopLen)

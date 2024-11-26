@@ -11,6 +11,7 @@ from src.functions.audio_manipulation import *
 DIRECTORY: Final[str] = "./data"
 WIN_SIZE: Final[float] = 0.032
 HOP_SIZE: Final[float] = WIN_SIZE / 2
+N_MFCC: Final[int] = 40
 
 
 def main():
@@ -19,22 +20,12 @@ def main():
         audio = getNormalizedAudio(file, plot=False)
 
         # Form spectrums
-        spectrum = getSpectrum(audio, FreqType.DECIBEL, plot=True)
+        spectrum = getSpectrum(audio, FreqType.DECIBEL, plot=False)
 
         # Form spectrograms
-        spectrogram = getSpectrogram(audio, FreqType.DECIBEL, WIN_SIZE, HOP_SIZE, plot=True)
+        spectrogram = getSpectrogram(audio, FreqType.DECIBEL, WIN_SIZE, HOP_SIZE, plot=False)
 
-        continue
-        mel =\
-            audio\
-            .transform(mfcc, False, WIN_SIZE, HOP_SIZE) \
-            .run(
-                plotSpectrogram,
-                False,
-                audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
-                audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
-                "Mel -- " + audio.transform(AudioSignal.getName).orElse("")
-            )
+        mel = getMFCC(audio, N_MFCC, WIN_SIZE, HOP_SIZE, plot=True)
         print(audio.transform(AudioSignal.getName).unwrap(), "\n", mel)
 
     keepPlotsOpen()
