@@ -13,7 +13,12 @@ DIRECTORY: Final[str] = "./data"
 
 def main():
     for file in onlyWavFiles(getFilesInDir("./data")):
-        audio = Maybe(file).construct(AudioSignal, False)
+        # Create a normalized AudioSignal
+        audio =\
+            Maybe(file)\
+            .construct(AudioSignal, False)\
+            .transform(AudioSignal.normalize)
+        
         audio\
             .run(plotSignal)\
             .transform(fft)\
@@ -22,7 +27,7 @@ def main():
             .run(plotSpectrum, False,
                  audio.transform(AudioSignal.getSamplerate).orElse(44100),
                  audio.transform(AudioSignal.getName).orElse(None)
-             )
+            )
 
     keepPlotsOpen()
 
