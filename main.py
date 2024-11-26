@@ -1,12 +1,11 @@
 # Require Structures:
 from typing import Final
-from src.dependencies.dependencies import *
 
 # Required functions:
-from src.functions.transfroms import *
-from src.functions.plotting import *
 from src.functions.file_management import *
-from src.functions.audio_manipulation import *
+from src.functions.audio_manipulation import FreqType, getNormalizedAudio, getSpectrum, getSpectrogram, getMFCC
+from src.functions.plotting import keepPlotsOpen
+
 
 DIRECTORY: Final[str] = "./data"
 WIN_SIZE: Final[float] = 0.032
@@ -16,6 +15,7 @@ N_MFCC: Final[int] = 40
 
 def main():
     for file in onlyWavFiles(getFilesInDir("./data")):
+        
         # Create a normalized AudioSignal
         audio = getNormalizedAudio(file, plot=False)
 
@@ -25,8 +25,7 @@ def main():
         # Form spectrograms
         spectrogram = getSpectrogram(audio, FreqType.DECIBEL, WIN_SIZE, HOP_SIZE, plot=False)
 
-        mel = getMFCC(audio, N_MFCC, WIN_SIZE, HOP_SIZE, plot=True)
-        print(audio.transform(AudioSignal.getName).unwrap(), "\n", mel)
+        mfcc = getMFCC(audio, N_MFCC, WIN_SIZE, HOP_SIZE, plot=True)
 
     keepPlotsOpen()
 
