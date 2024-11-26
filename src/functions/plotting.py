@@ -22,8 +22,19 @@ def plotSpectrum(fft_: np.ndarray, fs: float, title="") -> None:
     plt.show(block=False)
 
 
-def plotSpectrogram():
-    pass
+def plotSpectrogram(spectrogram: np.ndarray, maxF: float, maxT: float, title: str = ""):
+    plt.figure()
+    plt.imshow(
+        spectrogram,
+        aspect="auto",
+        origin="lower",
+        cmap="inferno",
+        interpolation='none',
+        extent=(0.0, maxT, 0.0, maxF)
+    )
+    plt.title(title)
+    plt.xlabel("Time")
+    plt.ylabel("Frequency")
 
 
 def keepPlotsOpen():
