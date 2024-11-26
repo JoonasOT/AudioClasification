@@ -1,5 +1,7 @@
 from enum import Enum
 
+from scipy import signal
+
 from src.dependencies.dependencies import *
 
 # Required functions:
@@ -22,6 +24,21 @@ def getNormalizedAudio(file: str, plot: bool = False) -> Maybe[AudioSignal]:
         .construct(AudioSignal, False)\
         .transform(AudioSignal.normalize)\
         .run(conditionalRunner(cond=plot, func=plotSignal))
+
+
+def sampleTo(sampleRate: int) -> Callable[[AudioSignal], AudioSignal]:
+    def __(as_: AudioSignal):
+        as_.signal = signal.resample(as_.getSignal(), int(sampleRate / as_.getSamplerate() * len(as_.getSignal())))
+        as_.samplerate = sampleRate
+        return as_
+    return __
+
+
+def limitSamplesTo(N: int) -> Callable[[AudioSignal], AudioSignal]:
+    def __(as_: AudioSignal):
+        as_.signal = as_.getSignal()[:N]
+        return as_
+    return __
 
 
 def getSpectrum(audio: Maybe[AudioSignal], freqT: FreqType = FreqType.DECIBEL, plot: bool = False) -> Maybe[np.ndarray]:
