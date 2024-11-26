@@ -11,14 +11,18 @@ def plotSignal(audio: AudioSignal) -> None:
     plt.plot(x_axis, audio.signal)
     plt.grid()
     plt.title(audio.name)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Amplitude")
     plt.show(block=False)
 
 
-def plotSpectrum(fft_: np.ndarray, fs: float, title="") -> None:
+def plotSpectrum(fft_: np.ndarray, fs: float, title="", isDB=True) -> None:
     plt.figure()
     plt.plot(np.linspace(0, fs / 2, len(fft_)), fft_)
     plt.grid()
     plt.title(title)
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel(f"Amplitude{' (dB)' if isDB else ''}")
     plt.show(block=False)
 
 
@@ -33,8 +37,8 @@ def plotSpectrogram(spectrogram: np.ndarray, maxF: float, maxT: float, title: st
         extent=(0.0, maxT, 0.0, maxF)
     )
     plt.title(title)
-    plt.xlabel("Time")
-    plt.ylabel("Frequency")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Frequency (Hz)")
 
 
 def keepPlotsOpen():

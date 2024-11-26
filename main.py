@@ -6,7 +6,7 @@ from src.dependencies.dependencies import *
 from src.functions.transfroms import *
 from src.functions.plotting import *
 from src.functions.file_management import *
-
+from src.functions.audio_manipulation import *
 
 DIRECTORY: Final[str] = "./data"
 WIN_SIZE: Final[float] = 0.032
@@ -16,35 +16,15 @@ HOP_SIZE: Final[float] = WIN_SIZE / 2
 def main():
     for file in onlyWavFiles(getFilesInDir("./data")):
         # Create a normalized AudioSignal
-        audio =\
-            Maybe(file)\
-            .construct(AudioSignal, False)\
-            .transform(AudioSignal.normalize)
+        audio = getNormalizedAudio(file, plot=False)
 
         # Form spectrums
-        spectrum =\
-            audio\
-            .run(plotSignal)\
-            .transform(fft)\
-            .transform(getAmplitude)\
-            .transform(amplitudeToDB)\
-            .run(plotSpectrum, False,
-                 audio.transform(AudioSignal.getSamplerate).orElse(44100),
-                 "Spectrum -- " + audio.transform(AudioSignal.getName).orElse(None),
-            )
+        spectrum = getSpectrum(audio, FreqType.DECIBEL, plot=True)
 
         # Form spectrograms
-        spectrogram =\
-            audio\
-            .transform(stft, False, WIN_SIZE, HOP_SIZE) \
-            .transformers(getAmplitude, amplitudeToDB) \
-            .run(
-                plotSpectrogram,
-                False,
-                audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
-                audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
-                "Spectrogram -- " + audio.transform(AudioSignal.getName).orElse(None)
-            )
+        spectrogram = getSpectrogram(audio, FreqType.DECIBEL, WIN_SIZE, HOP_SIZE, plot=True)
+
+        continue
         mel =\
             audio\
             .transform(mfcc, False, WIN_SIZE, HOP_SIZE) \
