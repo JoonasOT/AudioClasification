@@ -1,4 +1,5 @@
 # Require Structures:
+import json
 from typing import Final
 
 # Required functions:
@@ -22,7 +23,10 @@ WIN_SIZE: Final[float] = 0.032
 HOP_SIZE: Final[float] = WIN_SIZE / 2
 N_MFCC: Final[int] = 40
 
-MFCCs = {}
+NEAREST_NEIGHBOUR_N: Final[int] = 5
+
+MFCCs: dict[str, list[np.ndarray]] = {}
+RESULTS: dict[str, list[str]] = {}
 
 
 def main():
@@ -58,13 +62,16 @@ def main():
 
         mfcc = getMFCC(audio, N_MFCC, WIN_SIZE, HOP_SIZE, plot=False)
 
-        for m, mfccs in MFCCs.items():
-            dists = []
-            for mfcc_ in mfccs:
-                dists.append(np.linalg.norm(np.mean(mfcc.unwrap().T, axis=0) - mfcc_))
-            dists = np.sort(dists)
-            print(f"For {file} the matches for {m} where:\n{dists}")
+        model = file.split("/")[-2]
+        distsPerM: list[tuple[str, np.ndarray]] = [
+            (m, np.linalg.norm(np.mean(mfcc.unwrap().T, axis=0) - mfcc_)) for m, mfccs in MFCCs.items() for mfcc_ in mfccs
+        ]
 
+        distsPerM.sort(key=lambda tup: tup[1])
+
+        RESULTS[model] = [tup[0] for tup in distsPerM][:NEAREST_NEIGHBOUR_N]
+
+    print(json.dumps(RESULTS, sort_keys=True, indent=4))
     keepPlotsOpen()
 
 
