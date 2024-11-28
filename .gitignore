@@ -1,6 +1,7 @@
 .idea/
 car/
 tram/
+*.json
 
 
 # Byte-compiled / optimized / DLL files
