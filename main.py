@@ -1,16 +1,9 @@
 # Require Structures:
 import json
-from typing import Final
+from typing import Final, Callable
 
-# Required functions:
-import numpy as np
-
-from src.functions.file_management import *
-from src.functions.audio_manipulation import FreqType, getNormalizedAudio, sampleTo, \
-                                            limitSamplesTo, getSpectrum, getSpectrogram,\
-                                            getMFCC
-from src.functions.plotting import keepPlotsOpen
-
+from src.models.common import getMFCCs
+import src.models.nearest_neighbour as NearestNeighbour
 
 DATA_DIR: Final[str] = "./data"
 TEST_DIR: Final[str] = "/test"
@@ -23,56 +16,44 @@ WIN_SIZE: Final[float] = 0.032
 HOP_SIZE: Final[float] = WIN_SIZE / 2
 N_MFCC: Final[int] = 40
 
-NEAREST_NEIGHBOUR_N: Final[int] = 5
+NEAREST_NEIGHBOUR_N: Final[int] = 20
 
-MFCCs: dict[str, list[np.ndarray]] = {}
-RESULTS: dict[str, list[str]] = {}
+MODEL_GETTER: Final[Callable[[str], str]] = lambda file: file.split("/")[-2]
+
+PRINT_CONFIDENCES: Final[bool] = True
+PRINT_RESULTS: Final[bool] = False
+WRITE_RESULTS: Final[bool] = False
 
 
 def main():
-    for file in onlyWavFiles(getFilesInDir(DATA_DIR + TRAIN_DIR)):
-        print(file)
-        # Create a normalized AudioSignal
-        audio = getNormalizedAudio(file, plot=False)
+    trainData = getMFCCs(DATA_DIR + TRAIN_DIR, MODEL_GETTER, N_MFCC, WIN_SIZE, HOP_SIZE)
+    testData = getMFCCs(DATA_DIR + TEST_DIR, MODEL_GETTER, N_MFCC, WIN_SIZE, HOP_SIZE)
 
-        # Form spectrums
-        # spectrum = getSpectrum(audio, FreqType.DECIBEL, plot=False)
+    nearest = NearestNeighbour.Model(trainData, NEAREST_NEIGHBOUR_N)
 
-        # Form spectrograms
-        # spectrogram = getSpectrogram(audio, FreqType.DECIBEL, WIN_SIZE, HOP_SIZE, plot=False)
+    tests: list = []
+    for m, mffcs in testData.items():
+        for mfcc in mffcs:
+            test = nearest.test(m, mfcc)
+            tests.append(test)
 
-        mfcc = getMFCC(audio, N_MFCC, WIN_SIZE, HOP_SIZE, plot=False)
+            if PRINT_CONFIDENCES:
+                print(json.dumps({
+                    test.label:
+                        {
+                            'constant': test.getConfidence(NearestNeighbour.biasWithCutoff(NEAREST_NEIGHBOUR_N)),
+                            'linear': test.getConfidence(NearestNeighbour.linearBias)
+                        }
+                    }, indent=2))
 
-        model = file.split("/")[-2]
-        if model in MFCCs:
-            MFCCs[model].append(np.mean(mfcc.unwrap().T, axis=0))
-        else:
-            MFCCs[model] = [np.mean(mfcc.unwrap().T, axis=0)]
+    results = json.dumps(tests, indent=4)
 
-    for file in onlyWavFiles(getFilesInDir(DATA_DIR + TEST_DIR)):
-        print(file)
-        # Create a normalized AudioSignal
-        audio = getNormalizedAudio(file, plot=False)
+    if PRINT_RESULTS:
+        print(results)
 
-        # Form spectrums
-        # spectrum = getSpectrum(audio, FreqType.DECIBEL, plot=False)
-
-        # Form spectrograms
-        # spectrogram = getSpectrogram(audio, FreqType.DECIBEL, WIN_SIZE, HOP_SIZE, plot=False)
-
-        mfcc = getMFCC(audio, N_MFCC, WIN_SIZE, HOP_SIZE, plot=False)
-
-        model = file.split("/")[-2]
-        distsPerM: list[tuple[str, np.ndarray]] = [
-            (m, np.linalg.norm(np.mean(mfcc.unwrap().T, axis=0) - mfcc_)) for m, mfccs in MFCCs.items() for mfcc_ in mfccs
-        ]
-
-        distsPerM.sort(key=lambda tup: tup[1])
-
-        RESULTS[model] = [tup[0] for tup in distsPerM][:NEAREST_NEIGHBOUR_N]
-
-    print(json.dumps(RESULTS, sort_keys=True, indent=4))
-    keepPlotsOpen()
+    if WRITE_RESULTS:
+        with open("model.json", "w") as f:
+            f.write(results)
 
 
 if __name__ == '__main__':
