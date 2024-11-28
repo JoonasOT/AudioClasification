@@ -26,8 +26,17 @@ WRITE_RESULTS: Final[bool] = False
 
 
 def main():
-    trainData = getMFCCs(DATA_DIR + TRAIN_DIR, MODEL_GETTER, N_MFCC, WIN_SIZE, HOP_SIZE)
-    testData = getMFCCs(DATA_DIR + TEST_DIR, MODEL_GETTER, N_MFCC, WIN_SIZE, HOP_SIZE)
+    # Setup training data
+    trainData = getMFCCs(
+        DATA_DIR + TRAIN_DIR, MODEL_GETTER,
+        N_MFCC, WIN_SIZE, HOP_SIZE
+    )
+
+    # Setup test data
+    testData = getMFCCs(
+        DATA_DIR + TEST_DIR, MODEL_GETTER,
+        N_MFCC, WIN_SIZE, HOP_SIZE
+    )
 
     nearest = NearestNeighbour.Model(trainData, NEAREST_NEIGHBOUR_N)
 
