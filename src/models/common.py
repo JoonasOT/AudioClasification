@@ -1,9 +1,17 @@
-from typing import Callable
-
+from typing import Callable, NamedTuple
 import numpy as np
+
 
 from src.functions.audio_manipulation import getNormalizedAudio, getMFCC, conditionalRunner, sampleTo, limitSamplesTo
 from src.functions.file_management import onlyWavFiles, getFilesInDir
+
+
+class Settings(NamedTuple):
+    samplerate: int
+    samples: int
+    winLen: float
+    hopSize: float
+    binCount: int
 
 
 def getMFCCs(path: str, modelNameGetter: Callable[[str], str], nMFCC: int, winLen: float, hopSize: float,
