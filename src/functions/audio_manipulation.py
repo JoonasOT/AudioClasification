@@ -81,3 +81,16 @@ def getMFCC(audio: Maybe[AudioSignal], nMFFC: int = 20, winSize: float = 0.030, 
         audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
         "MFCC -- " + audio.transform(AudioSignal.getName).orElse("")
     )
+
+def getSpectralCentroid(audio: Maybe[AudioSignal], nFFT: int = 20, winSize: float = 0.030, 
+                        hopSize: float = 0.015, plot: bool = False) \
+                    -> Maybe[np.ndarray]:
+    return audio \
+        .transform(spectralCentroid, False, nFFT, winSize, hopSize) \
+        .run(
+        conditionalRunner(cond=plot, func=plotSpectrogram),
+        False,
+        audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
+        audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
+        "Spectral Density -- " + audio.transform(AudioSignal.getName).orElse("")
+    )

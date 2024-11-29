@@ -14,6 +14,20 @@ class Settings(NamedTuple):
     binCount: int
 
 
+"""
+Extracts MFCCs (Mel-Frequency Cepstral Coefficients) from audio files in a given directory.
+Args:
+    path (str): The directory path containing audio files.
+    modelNameGetter (Callable[[str], str]): A function that takes a file path and returns the label name of the file.
+    nMFCC (int): The number of MFCCs to extract.
+    winLen (float): The window length for MFCC extraction.
+    hopSize (float): The hop size for MFCC extraction.
+    samplerate (int, optional): The target sample rate for audio files. Defaults to None.
+    samples (int, optional): The maximum number of samples to consider from each audio file. Defaults to None.
+
+Returns:
+    dict[str, list[np.ndarray]]: A dictionary where keys are model names and values are lists of MFCC arrays.
+"""
 def getMFCCs(path: str, modelNameGetter: Callable[[str], str], nMFCC: int, winLen: float, hopSize: float,
              samplerate: int = None, samples: int = None) -> dict[str, list[np.ndarray]]:
     MFCCs: dict[str, list[np.ndarray]] = {}
@@ -33,3 +47,8 @@ def getMFCCs(path: str, modelNameGetter: Callable[[str], str], nMFCC: int, winLe
         else:
             MFCCs[model] = [mfcc.unwrap()]
     return MFCCs
+
+
+def getSpectralDensity(path: str, modelNameGetter: Callable[[str], str], nFFT: int, winLen: float, hopSize: float,
+                       samplerate: int = None, samples: int = None):
+    return None

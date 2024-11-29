@@ -18,6 +18,7 @@ N_MFCC: Final[int] = 40
 
 NEAREST_NEIGHBOUR_N: Final[int] = 20
 
+# Gets the label of the sound file given by its parent directory
 MODEL_GETTER: Final[Callable[[str], str]] = lambda file: file.split("/")[-2]
 
 PRINT_CONFIDENCES: Final[bool] = True
