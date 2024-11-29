@@ -1,4 +1,6 @@
 .idea/
+car/
+tram/
 *.json
 
 
