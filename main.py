@@ -29,13 +29,15 @@ def main():
     # Setup training data
     trainData = getMFCCs(
         DATA_DIR + TRAIN_DIR, MODEL_GETTER,
-        N_MFCC, WIN_SIZE, HOP_SIZE
+        N_MFCC, WIN_SIZE, HOP_SIZE,
+        samplerate=SAMPLERATE, samples=N_SAMPLES
     )
 
     # Setup test data
     testData = getMFCCs(
         DATA_DIR + TEST_DIR, MODEL_GETTER,
-        N_MFCC, WIN_SIZE, HOP_SIZE
+        N_MFCC, WIN_SIZE, HOP_SIZE,
+        samplerate=SAMPLERATE, samples=N_SAMPLES
     )
 
     nearest = NearestNeighbour.Model(trainData, NEAREST_NEIGHBOUR_N)
@@ -61,7 +63,7 @@ def main():
         print(results)
 
     if WRITE_RESULTS:
-        with open("model.json", "w") as f:
+        with open("results.json", "w") as f:
             f.write(results)
 
 
