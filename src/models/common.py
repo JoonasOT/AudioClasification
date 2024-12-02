@@ -32,7 +32,6 @@ def getMFCCs(path: str, modelNameGetter: Callable[[str], str], nMFCC: int, winLe
              samplerate: int = None, samples: int = None) -> dict[str, list[np.ndarray]]:
     MFCCs: dict[str, list[np.ndarray]] = {}
     for file in onlyWavFiles(getFilesInDir(path)):
-        print(file)
         # Create a normalized AudioSignal
         audio = getNormalizedAudio(file, plot=False).transformers(
             conditionalRunner(samplerate is not None, sampleTo(samplerate), lambda v: v),
@@ -49,6 +48,18 @@ def getMFCCs(path: str, modelNameGetter: Callable[[str], str], nMFCC: int, winLe
     return MFCCs
 
 
-def getSpectralDensity(path: str, modelNameGetter: Callable[[str], str], nFFT: int, winLen: float, hopSize: float,
-                       samplerate: int = None, samples: int = None):
-    return None
+def getSpectralCentroids(path: str, modelNameGetter: Callable[[str], str], nFFT: int, winLen: float, 
+                        hopSize: float, samplerate: int = None, samples: int = None):
+    for file in onlyWavFiles(getFilesInDir(path)):
+        audio = getNormalizedAudio(file, plot=False).transformers(
+            conditionalRunner(samplerate is not None, sampleTo(samplerate), lambda v: v),
+            conditionalRunner(samples is not None, limitSamplesTo(samples), lambda v: v),
+        )
+        assert bool(audio), "File reading errornous!"
+        label = modelNameGetter(file)
+        spectralCentroids = getSpectralCentroid(audio, nFFT, winLen, hopSize, plot=False)
+        if label in spectralCentroids:
+            spectralCentroids[label].append(spectralCentroids.unwrap())
+        else:
+            spectralCentroids[label] = [spectralCentroids.unwrap()]
+        
