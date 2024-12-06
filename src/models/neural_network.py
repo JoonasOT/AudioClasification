@@ -1,4 +1,4 @@
-from typing import NamedTuple, Final
+from typing import NamedTuple, Final, Union
 from math import log2
 
 import numpy as np
@@ -78,12 +78,12 @@ class Model:
 
         return data
 
-    def __importData(self, dir_: str):
+    def __importData(self, dir_: str, labelGetter=lambda str_: str_.split("/")[-2]):
         labels: list[str] = []
         out: list = []
 
         for file in onlyWavFiles(getFilesInDir(dir_)):
-            label = file.split("/")[-2]
+            label = labelGetter(file)
             labels.append(label)
 
             out.append(self.__getInputs(file))
@@ -121,14 +121,21 @@ class Model:
 
         self.model = keras.Sequential(
             [
-                keras.layers.Conv2D(64, (3, 3), padding='same', activation="relu", input_shape=(126, 40, 1)),
+                keras.layers.Conv2D(32, (3, 3), padding='same', activation="relu", input_shape=(126, 40, 1)),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
+
+
+                keras.layers.Conv2D(64, (3, 3), padding='same', activation="relu"),
+                keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
+                keras.layers.Dropout(0.25),
 
                 keras.layers.Conv2D(128, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
+                keras.layers.Dropout(0.25),
 
                 keras.layers.Flatten(),
-                keras.layers.Dense(100, activation="relu"),
+                keras.layers.Dense(128, activation="relu"),
+                keras.layers.Dropout(0.25),
                 keras.layers.BatchNormalization(),
                 keras.layers.Dense(2, activation="softmax")
             ]
@@ -153,7 +160,6 @@ class Model:
         )
 
     def train(self, epochs: int, steps: int):
-
         return self.model.fit(
             tensorflow.data.Dataset.from_tensor_slices(self.trainData.get()).batch(128).repeat(),
             epochs=epochs,
@@ -164,5 +170,12 @@ class Model:
         )
 
     def predict(self, file: str):
-        data = self.__getInputs(file)
-        return self.model.predict(np.expand_dims(data, axis=0))
+        return self.model.predict(np.expand_dims(self.__getInputs(file), axis=0))
+
+    def predictionsFor(self, dir_: str):
+        labels, data = self.__importData(dir_, labelGetter=lambda str_: str_.split("/")[-1])
+
+        return labels, self.model.predict(np.array(data))
+
+    def preditionToLabel(self, pred: np.ndarray) -> str:
+        return list(map(lambda t: t[0], filter(lambda t: t[1] == np.argmax(pred), self.labels.items())))[0]

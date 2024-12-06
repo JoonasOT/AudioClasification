@@ -21,7 +21,8 @@ SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, 
 
 
 def main():
-    model = NN.Model(SETTINGS, "./models/checkpoint.keras", True)
+    USE_SAVE = True
+    model = NN.Model(SETTINGS, "./models/checkpoint.keras", USE_SAVE)
     model.importTrain(DATA_DIR + TRAIN_DIR)
     model.importValidation(DATA_DIR + TEST_DIR)
 
@@ -29,8 +30,11 @@ def main():
         print(np.shape(md.data))
         print(md.labels)
 
-    #history = model.train(10, 100)
-    print(model.predict("./data/test/car/660004__car_sound__car10.wav"))
+    if not USE_SAVE:
+        history = model.train(10, 100)
+
+    preds = model.predictionsFor(DATA_DIR + TEST_DIR)
+    print([f"{preds[0][i]} got {model.preditionToLabel(preds[1][i])}" for i in range(len(preds[0]))])
 
 
 if __name__ == '__main__':
