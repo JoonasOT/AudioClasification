@@ -2,7 +2,8 @@ from typing import Callable, NamedTuple
 import numpy as np
 
 
-from src.functions.audio_manipulation import getNormalizedAudio, getMFCC, conditionalRunner, sampleTo, limitSamplesTo
+from src.functions.audio_manipulation import getNormalizedAudio, getMFCC, conditionalRunner, sampleTo, limitSamplesTo, \
+    getSpectralCentroid
 from src.functions.file_management import onlyWavFiles, getFilesInDir
 
 
