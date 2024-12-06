@@ -21,14 +21,10 @@ SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, 
 
 
 def main():
-    USE_SAVE = True
+    USE_SAVE = False
     model = NN.Model(SETTINGS, "./models/checkpoint.keras", USE_SAVE)
     model.importTrain(DATA_DIR + TRAIN_DIR)
     model.importValidation(DATA_DIR + TEST_DIR)
-
-    for md in [model.trainData, model.validationData]:
-        print(np.shape(md.data))
-        print(md.labels)
 
     if not USE_SAVE:
         history = model.train(10, 100)

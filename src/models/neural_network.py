@@ -1,8 +1,8 @@
-from typing import NamedTuple, Final, Union
-from math import log2
+from typing import NamedTuple, Final
 
 import numpy as np
 import os
+import sys
 
 from src.dependencies.dependencies import Maybe
 
@@ -40,7 +40,8 @@ class Model:
         self.modelCallbacks: list = []
 
         self.model: keras.models.Sequential = None
-        self.__createModel(useSave)
+        if useSave:
+            self.__createModel(True)
 
     def __normalize(self, arr: np.ndarray) -> np.ndarray:
         max_ = np.max([np.abs(np.min(arr)), np.max(arr)])
@@ -98,6 +99,7 @@ class Model:
                 __labelMax += 1
 
     def importTrain(self, dir_: str) -> None:
+        print("Importing training data")
         labels, data = self.__importData(dir_)
 
         self.__createLabels(labels)
@@ -105,8 +107,10 @@ class Model:
             np.array(list(map(lambda s: self.labels[s], labels))),
             data
         )
+        self.__createModel(False, np.shape(data[0]))
 
     def importValidation(self, dir_: str) -> None:
+        print("Importing validation data")
         labels, data = self.__importData(dir_)
 
         self.validationData = ModelData(
@@ -114,14 +118,16 @@ class Model:
             data
         )
 
-    def __createModel(self, useSave: bool = True) -> None:
+    def __createModel(self, useSave: bool = True, dataDim: tuple = None) -> None:
         if useSave:
+            print(f"Creating model from {self.modelDir}")
             self.model = keras.models.load_model(self.modelDir)
             return
 
+        print(f"Creating new model based on training data")
         self.model = keras.Sequential(
             [
-                keras.layers.Conv2D(32, (3, 3), padding='same', activation="relu", input_shape=(126, 40, 1)),
+                keras.layers.Conv2D(32, (3, 3), padding='same', activation="relu", input_shape=dataDim),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
 
 
@@ -140,7 +146,10 @@ class Model:
                 keras.layers.Dense(2, activation="softmax")
             ]
         )
+        print("Created model:")
         self.model.summary()
+        print()
+        sys.stdout.flush()
         self.model.compile(
             optimizer='adam',
             loss=keras.losses.CategoricalCrossentropy(from_logits=False),
@@ -160,6 +169,7 @@ class Model:
         )
 
     def train(self, epochs: int, steps: int):
+        print("Training Neural Network:")
         return self.model.fit(
             tensorflow.data.Dataset.from_tensor_slices(self.trainData.get()).batch(128).repeat(),
             epochs=epochs,
@@ -170,9 +180,11 @@ class Model:
         )
 
     def predict(self, file: str):
+        print(f"Getting prediction for {file}")
         return self.model.predict(np.expand_dims(self.__getInputs(file), axis=0))
 
     def predictionsFor(self, dir_: str):
+        print(f"Getting predictions for files in {dir_}")
         labels, data = self.__importData(dir_, labelGetter=lambda str_: str_.split("/")[-1])
 
         return labels, self.model.predict(np.array(data))
