@@ -47,47 +47,46 @@ class Model:
         arr /= 2 * max_
         return arr + 0.5
 
+    def __getInputs(self, file: str) -> np.ndarray:
+        audio = getNormalizedAudio(file).transformers(
+            sampleTo(self.settings.samplerate),
+            limitSamplesTo(self.settings.samples)
+        )
+        # Get MFCC constants
+        mfcc = audio.construct(Maybe, False).transform(
+            getMFCC, False,
+            self.settings.binCount,
+            self.settings.winLen,
+            self.settings.hopSize
+        )
+
+        # Normalize the data
+        mfcc = self.__normalize(mfcc.unwrap().unwrap()).T
+
+        # spectralBands = ...
+        # spectralCentroids = ...
+
+        # What we use as outputs or inputs for NN
+        outputs = [mfcc]
+
+        xMax, yMax, zMax = len(mfcc), len(mfcc[0]), len(outputs)
+        data = np.zeros((xMax, yMax, zMax))
+        for x in range(xMax):
+            for y in range(yMax):
+                for z in range(zMax):
+                    data[x, y, z] = outputs[z][x][y]
+
+        return data
+
     def __importData(self, dir_: str):
         labels: list[str] = []
-        mfccs: list[np.ndarray] = []
-        spectralBands: list[np.ndarray] = []
-        spectralCentroids: list[np.ndarray] = []
-
         out: list = []
 
         for file in onlyWavFiles(getFilesInDir(dir_)):
             label = file.split("/")[-2]
-            audio = getNormalizedAudio(file).transformers(
-                        sampleTo(self.settings.samplerate),
-                        limitSamplesTo(self.settings.samples)
-            )
-            # Get MFCC constants
-            mfcc = audio.construct(Maybe, False).transform(
-                getMFCC, False,
-                self.settings.binCount,
-                self.settings.winLen,
-                self.settings.hopSize
-            )
-
-            # Normalize the data
-            mfcc = self.__normalize(mfcc.unwrap().unwrap()).T
-
-            # Set the data
             labels.append(label)
-            mfccs.append(mfcc)
 
-            # spectralBands = ...
-            # spectralCentroids = ...
-
-            outputs = [mfcc]
-
-            xMax, yMax, zMax = len(mfcc), len(mfcc[0]), len(outputs)
-            data = np.zeros((xMax, yMax, zMax))
-            for x in range(xMax):
-                for y in range(yMax):
-                    for z in range(zMax):
-                        data[x, y, z] = outputs[z][x][y]
-            out.append(data)
+            out.append(self.__getInputs(file))
         # Return the labels, mfccs and others
         return labels, out
 
@@ -122,11 +121,11 @@ class Model:
 
         self.model = keras.Sequential(
             [
-                keras.layers.Conv2D(126, (3, 3), padding='same', activation="relu", input_shape=(126, 40, 1)),
-                keras.layers.MaxPooling2D((2, 2), strides=2),
+                keras.layers.Conv2D(64, (3, 3), padding='same', activation="relu", input_shape=(126, 40, 1)),
+                keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
 
-                keras.layers.Conv2D(64, (3, 3), padding='same', activation="relu"),
-                keras.layers.MaxPooling2D((2, 2), strides=2),
+                keras.layers.Conv2D(128, (3, 3), padding='same', activation="relu"),
+                keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
 
                 keras.layers.Flatten(),
                 keras.layers.Dense(100, activation="relu"),
@@ -153,13 +152,17 @@ class Model:
             )
         )
 
-    def train(self, epochs: int):
+    def train(self, epochs: int, steps: int):
 
         return self.model.fit(
             tensorflow.data.Dataset.from_tensor_slices(self.trainData.get()).batch(128).repeat(),
             epochs=epochs,
-            steps_per_epoch=500,
+            steps_per_epoch=steps,
             validation_data=tensorflow.data.Dataset.from_tensor_slices(self.validationData.get()).batch(128).repeat(),
             validation_steps=2,
             callbacks=self.modelCallbacks
         )
+
+    def predict(self, file: str):
+        data = self.__getInputs(file)
+        return self.model.predict(np.expand_dims(data, axis=0))
