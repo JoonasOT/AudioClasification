@@ -1,17 +1,16 @@
 from typing import NamedTuple, Final
 
-import numpy as np
-import os
 import sys
-
-from src.dependencies.dependencies import Maybe
-
+import os
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 import tensorflow
 import keras
+import numpy as np
 
-from src.functions.audio_manipulation import getMFCC, getNormalizedAudio, limitSamplesTo, sampleTo
+
+from src.dependencies.dependencies import Maybe
+from src.functions.audio_manipulation import getMFCC, getNormalizedAudio, limitSamplesTo, sampleTo, getSpectralCentroid
 from src.functions.file_management import onlyWavFiles, getFilesInDir
 from src.models.common import Settings
 
@@ -61,11 +60,17 @@ class Model:
             self.settings.hopSize
         )
 
+        spectralCentroids = audio.construct(Maybe, False).transform(
+            getSpectralCentroid, False,
+            self.settings.binCount,
+            self.settings.winLen,
+            self.settings.hopSize
+        )
+
         # Normalize the data
         mfcc = self.__normalize(mfcc.unwrap().unwrap()).T
+        #spectralCentroids = self.__normalize(spectralCentroids.unwrap().unwrap()).T
 
-        # spectralBands = ...
-        # spectralCentroids = ...
 
         # What we use as outputs or inputs for NN
         outputs = [mfcc]
@@ -127,15 +132,16 @@ class Model:
         print(f"Creating new model based on training data")
         self.model = keras.Sequential(
             [
-                keras.layers.Conv2D(32, (3, 3), padding='same', activation="relu", input_shape=dataDim),
+                keras.layers.Input(dataDim),
+                keras.layers.Conv2D(126, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
 
 
-                keras.layers.Conv2D(64, (3, 3), padding='same', activation="relu"),
+                keras.layers.Conv2D(126*2, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
-                keras.layers.Conv2D(128, (3, 3), padding='same', activation="relu"),
+                keras.layers.Conv2D(126*4, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
