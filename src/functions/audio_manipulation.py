@@ -47,12 +47,12 @@ def getSpectrum(audio: Maybe[AudioSignal], freqT: FreqType = FreqType.DECIBEL, p
     return audio \
         .transformers(*((fft, getAmplitude, amplitudeToDB)[:freqT.value + 1])) \
         .run(
-        conditionalRunner(cond=plot, func=plotSpectrum),
-        False,
-        audio.transform(AudioSignal.getSamplerate).orElse(44100),
-        "Spectrum -- " + audio.transform(AudioSignal.getName).orElse(None),
-        isDB=freqT == FreqType.DECIBEL
-    )
+            conditionalRunner(cond=plot, func=plotSpectrum),
+            False,
+            audio.transform(AudioSignal.getSamplerate).orElse(44100),
+            "Spectrum -- " + audio.transform(AudioSignal.getName).orElse(None),
+            isDB=freqT == FreqType.DECIBEL
+        )
 
 
 def getSpectrogram(audio: Maybe[AudioSignal], freqT: FreqType = FreqType.DECIBEL,
@@ -61,12 +61,12 @@ def getSpectrogram(audio: Maybe[AudioSignal], freqT: FreqType = FreqType.DECIBEL
         .transform(stft, False, winSize, hopSize) \
         .transformers(*((getAmplitude, amplitudeToDB)[:freqT.value])) \
         .run(
-        conditionalRunner(cond=plot, func=plotSpectrogram),
-        False,
-        audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
-        audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
-        "Spectrogram -- " + audio.transform(AudioSignal.getName).orElse(None)
-    )
+            conditionalRunner(cond=plot, func=plotSpectrogram),
+            False,
+            audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
+            audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
+            "Spectrogram -- " + audio.transform(AudioSignal.getName).orElse(None)
+        )
 
 
 def getMFCC(audio: Maybe[AudioSignal], nMFFC: int = 20, winSize: float = 0.030, hopSize: float = 0.015,
@@ -75,22 +75,23 @@ def getMFCC(audio: Maybe[AudioSignal], nMFFC: int = 20, winSize: float = 0.030, 
     return audio \
         .transform(mfcc, False, nMFFC, winSize, hopSize) \
         .run(
-        conditionalRunner(cond=plot, func=plotSpectrogram),
-        False,
-        audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
-        audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
-        "MFCC -- " + audio.transform(AudioSignal.getName).orElse("")
-    )
+            conditionalRunner(cond=plot, func=plotSpectrogram),
+            False,
+            audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
+            audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
+            "MFCC -- " + audio.transform(AudioSignal.getName).orElse("")
+        )
 
-def getSpectralCentroid(audio: Maybe[AudioSignal], nFFT: int = 20, winSize: float = 0.030, 
+
+def getSpectralCentroid(audio: Maybe[AudioSignal], nFFT: int = 20, winSize: float = 0.030,
                         hopSize: float = 0.015, plot: bool = False) \
-                    -> Maybe[np.ndarray]:
+        -> Maybe[np.ndarray]:
     return audio \
         .transform(spectralCentroid, False, nFFT, winSize, hopSize) \
         .run(
-        conditionalRunner(cond=plot, func=plotSpectrogram),
-        False,
-        audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
-        audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
-        "Spectral Density -- " + audio.transform(AudioSignal.getName).orElse("")
-    )
+            conditionalRunner(cond=plot, func=plotSpectrogram),
+            False,
+            audio.transform(AudioSignal.getSamplerate).orElse(2.0) / 2,
+            audio.transform(lambda as_: (1 / as_.getSamplerate()) * len(as_.getSignal())).orElse(1.0),
+            "Spectral Density -- " + audio.transform(AudioSignal.getName).orElse("")
+        )
