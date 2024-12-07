@@ -13,7 +13,9 @@ from src.functions.file_management import onlyWavFiles, getFilesInDir
 from src.models.common import Settings
 
 
-ONE_HOT_DEPTH: Final[int] = 2
+# TODO: Move this inside ModelData and Model somehow
+# Since this is here the user cannot configure this easily themselves
+ONE_HOT_DEPTH: Final[int] = 3
 
 
 class ModelData(NamedTuple):
@@ -21,6 +23,9 @@ class ModelData(NamedTuple):
     data: list[np.ndarray]
 
     def get(self):
+        # If you get an error about the data being inhomogenous it is most likely due to having
+        # included a too short of an audio clip. All audio clips need to be ATLEAST as long as the
+        # set length in the Settings object given to the Model constructor
         return np.array(self.data), tensorflow.one_hot(self.labels, depth=ONE_HOT_DEPTH)
 
 
@@ -55,6 +60,7 @@ class Model:
         return arr + 0.5
 
     def __getInputs(self, file: str) -> np.ndarray:
+        # print(file)
         audio = getNormalizedAudio(file).transformers(
             sampleTo(self.settings.samplerate),
             limitSamplesTo(self.settings.samples)
@@ -155,28 +161,24 @@ class Model:
             [
                 keras.layers.Input(dataDim),
 
-                keras.layers.Conv2D(64, (3, 3), padding='same', activation="relu"),
-                keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
-
-
                 keras.layers.Conv2D(128, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
-                keras.layers.Dropout(0.25),
+
 
                 keras.layers.Conv2D(256, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
-                # Reduce the number of filters back to 128 -> Halves the number of weights in the next step
-                keras.layers.Conv2D(128, (3, 3), padding='same', activation="relu"),
+                keras.layers.Conv2D(512, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
+
 
                 keras.layers.Flatten(),
                 keras.layers.Dense(128, activation="relu"),
                 keras.layers.Dropout(0.25),
                 keras.layers.BatchNormalization(),
-                keras.layers.Dense(2, activation="softmax")
+                keras.layers.Dense(ONE_HOT_DEPTH, activation="softmax")
             ]
         )
 
