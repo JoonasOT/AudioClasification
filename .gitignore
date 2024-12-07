@@ -1,4 +1,5 @@
 .idea/
+conda/
 **/test/*
 **/train/*
 *.json
