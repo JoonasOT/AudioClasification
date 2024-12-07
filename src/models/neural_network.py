@@ -211,6 +211,9 @@ class Model:
 
                 keras.layers.Flatten(),
 
+                keras.layers.Dense(256, activation="relu"),
+                keras.layers.Dropout(0.25),
+
                 keras.layers.Dense(128, activation="relu"),
                 keras.layers.Dropout(0.25),
 
@@ -234,7 +237,7 @@ class Model:
         )
 
         # Function for stopping before overfitting
-        self.modelCallbacks.append(keras.callbacks.EarlyStopping(patience=4))
+        self.modelCallbacks.append(keras.callbacks.EarlyStopping(patience=2))
         # Function for storing the model checkpoints to memory
         self.modelCallbacks.append(
             keras.callbacks.ModelCheckpoint(
@@ -248,11 +251,13 @@ class Model:
 
     def train(self, epochs: int, steps: int):
         print("Training Neural Network:")
+        trainingDataset = tensorflow.data.Dataset.from_tensor_slices(self.trainData.get())
+        validationDataset = tensorflow.data.Dataset.from_tensor_slices(self.validationData.get())
         return self.model.fit(
-            tensorflow.data.Dataset.from_tensor_slices(self.trainData.get()).batch(128).repeat(),
+            trainingDataset.shuffle(len(self.trainData.labels)).batch(128).repeat(),
             epochs=epochs,
             steps_per_epoch=steps,
-            validation_data=tensorflow.data.Dataset.from_tensor_slices(self.validationData.get()).batch(128).repeat(),
+            validation_data=validationDataset.shuffle(len(self.validationData.labels)).batch(128).repeat(),
             validation_steps=2,
             callbacks=self.modelCallbacks
         )

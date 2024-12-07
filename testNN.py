@@ -1,3 +1,5 @@
+import sys
+
 from typing import Final
 
 import src.models.neural_network as NN
@@ -20,18 +22,18 @@ SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, 
 
 
 def main():
-    USE_SAVE = False
+    USE_SAVE = True
     model = NN.Model(SETTINGS, "./models/checkpoint.keras", useCachedValues=True, useSave=USE_SAVE)
 
     if not USE_SAVE:
         model.importTrain(DATA_DIR + TRAIN_DIR)
         model.importValidation(DATA_DIR + TEST_DIR)
-        history = model.train(20, 400)
+        history = model.train(13, 100)
     else:
         model.importLabelsFrom(DATA_DIR + TEST_DIR)
 
     for prediction in model.predictionsFor(DATA_DIR + TEST_DIR):
-        print(prediction)
+        print(prediction, file=sys.stdout if prediction.file == prediction.label else sys.stderr)
 
 
 if __name__ == '__main__':
