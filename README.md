@@ -13,3 +13,8 @@ pip install -r requirements.txt
 ```
 but when using this command with the system interpreter, this will install the
 packages to your system.
+
+To download the model and zip files run the following code
+```shell
+git lfs fetch --all
+```
