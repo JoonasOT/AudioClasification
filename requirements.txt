@@ -4,3 +4,5 @@ scipy~=1.13.1
 sounddevice~=0.5.1
 functional-maybe~=1.1.7
 librosa~=0.10.2.post1
+tensorflow~=2.18.0
+keras~=3.7.0
