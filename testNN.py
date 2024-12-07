@@ -21,7 +21,7 @@ SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, 
 
 def main():
     USE_SAVE = False
-    model = NN.Model(SETTINGS, "./models/checkpoint.keras", USE_SAVE)
+    model = NN.Model(SETTINGS, "./models/checkpoint.keras", useCachedValues=True, useSave=USE_SAVE)
 
     if not USE_SAVE:
         model.importTrain(DATA_DIR + TRAIN_DIR)

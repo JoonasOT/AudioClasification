@@ -1,3 +1,4 @@
+import json
 from typing import NamedTuple, Final, Callable
 import sys
 
@@ -16,6 +17,17 @@ from src.models.common import Settings
 # TODO: Move this inside ModelData and Model somehow
 # Since this is here the user cannot configure this easily themselves
 ONE_HOT_DEPTH: Final[int] = 3
+
+
+class json_serialize(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
 
 
 class ModelData(NamedTuple):
@@ -38,13 +50,14 @@ class Prediction(NamedTuple):
 class Model:
     DEFAULT_LABEL_GETTER: Final[Callable[[str], str]] = lambda str_: str_.split("/")[-2]
 
-    def __init__(self, settings: Settings, modelDir: str, useSave: bool = False):
+    def __init__(self, settings: Settings, modelDir: str, useCachedValues: bool = False, useSave: bool = False):
         self.settings: Settings = settings
 
         self.labels: dict[str, int] = {}
 
         self.trainData: ModelData = None
         self.validationData: ModelData = None
+        self.useCache = useCachedValues
 
         self.modelDir: str = modelDir
         self.modelCallbacks: list = []
@@ -97,23 +110,46 @@ class Model:
 
         return data
 
-    def __importData(self, dir_: str, labelGetter=DEFAULT_LABEL_GETTER):
-        # Flush the std streams so if we get error messages we can be quite certain
-        # that they were from the following the files exectuded here
-        sys.stdout.flush()
-        sys.stderr.flush()
+    def __cacheDataRead(self, file: str) -> tuple[list[str], list]:
+        with open(file, 'r') as f:
+            cache = json.loads(f.read())
+            labels = cache["labels"]
+            out = cache["out"]
+            for i in range(len(out)):
+                out[i] = np.array(out[i])
+            return labels, out
 
+    def __cacheDataWrite(self, labels: list[str], out: list, file: str) -> None:
+        with open(file, 'w') as f:
+            f.write(json.dumps({"labels": labels, "out": out}, cls=json_serialize))
+
+    def __importData(self, dir_: str, labelGetter=DEFAULT_LABEL_GETTER, createCache=True):
         labels: list[str] = []
         out: list = []
 
-        for file in onlyWavFiles(getFilesInDir(dir_)):
-            label = labelGetter(file)
-            labels.append(label)
+        cachedFile = "/".join(dir_.split("/")[:-1]) + "/cache/" + dir_.split("/")[-1] + ".json"
+        if self.useCache and os.path.exists(cachedFile):
+            print(f"Reading from cache {cachedFile}")
+            labels, out = self.__cacheDataRead(cachedFile)
 
-            out.append(self.__getInputs(file))
-        # Return the labels, mfccs and others
-        sys.stdout.flush()
-        sys.stderr.flush()
+        else:
+            # Flush the std streams so if we get error messages we can be quite certain
+            # that they were from the following the files exectuded here
+            sys.stdout.flush()
+            sys.stderr.flush()
+
+            for file in onlyWavFiles(getFilesInDir(dir_)):
+                label = labelGetter(file)
+                labels.append(label)
+
+                out.append(self.__getInputs(file))
+            # Return the labels, mfccs and others
+            sys.stdout.flush()
+            sys.stderr.flush()
+
+            if createCache:
+                print(f"Creating cache {cachedFile}")
+                self.__cacheDataWrite(labels, out, cachedFile)
 
         return labels, out
 
@@ -161,15 +197,15 @@ class Model:
             [
                 keras.layers.Input(dataDim),
 
-                keras.layers.Conv2D(128, (3, 3), padding='same', activation="relu"),
+                keras.layers.Conv2D(256, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
 
 
-                keras.layers.Conv2D(256, (3, 3), padding='same', activation="relu"),
+                keras.layers.Conv2D(512, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
-                keras.layers.Conv2D(512, (3, 3), padding='same', activation="relu"),
+                keras.layers.Conv2D(1024, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
@@ -228,7 +264,7 @@ class Model:
 
     def predictionsFor(self, dir_: str) -> list[Prediction]:
         print(f"Getting predictions for files in {dir_}")
-        labels, data = self.__importData(dir_, labelGetter=lambda str_: str_.split("/")[-1])
+        labels, data = self.__importData(dir_, labelGetter=lambda str_: str_.split("/")[-1], createCache=False)
         ps = self.model.predict(np.array(data))
         return [Prediction(labels[i], ps[i], self.preditionToLabel(ps[i])) for i in range(len(labels))]
 
