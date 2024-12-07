@@ -21,16 +21,18 @@ SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, 
 
 
 def main():
-    USE_SAVE = False
+    USE_SAVE = True
     model = NN.Model(SETTINGS, "./models/checkpoint.keras", USE_SAVE)
-    model.importTrain(DATA_DIR + TRAIN_DIR)
-    model.importValidation(DATA_DIR + TEST_DIR)
 
     if not USE_SAVE:
+        model.importTrain(DATA_DIR + TRAIN_DIR)
+        model.importValidation(DATA_DIR + TEST_DIR)
         history = model.train(10, 100)
+    else:
+        model.importLabelsFrom(DATA_DIR + TEST_DIR)
 
-    preds = model.predictionsFor(DATA_DIR + TEST_DIR)
-    print([f"{preds[0][i]} got {model.preditionToLabel(preds[1][i])}" for i in range(len(preds[0]))])
+    for prediction in model.predictionsFor(DATA_DIR + TEST_DIR):
+        print(prediction)
 
 
 if __name__ == '__main__':

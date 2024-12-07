@@ -26,6 +26,12 @@ class ModelData(NamedTuple):
         return np.array(self.data), tensorflow.one_hot(self.labels, depth=ONE_HOT_DEPTH)
 
 
+class Prediction(NamedTuple):
+    file: str
+    weights: np.ndarray
+    label: str
+
+
 class Model:
     def __init__(self, settings: Settings, modelDir: str, useSave: bool = False):
         self.settings: Settings = settings
@@ -39,6 +45,7 @@ class Model:
         self.modelCallbacks: list = []
 
         self.model: keras.models.Sequential = None
+        self.useSave = useSave
         if useSave:
             self.__createModel(True)
 
@@ -85,6 +92,8 @@ class Model:
         return data
 
     def __importData(self, dir_: str, labelGetter=lambda str_: str_.split("/")[-2]):
+        sys.stdout.flush()
+        sys.stderr.flush()
         labels: list[str] = []
         out: list = []
 
@@ -102,6 +111,10 @@ class Model:
             if label not in self.labels:
                 self.labels[label] = __labelMax
                 __labelMax += 1
+
+    def importLabelsFrom(self, dir_: str, labelGetter=lambda str_: str_.split("/")[-2]) -> None:
+        print(f"Importing labels from {dir_}")
+        self.__createLabels([labelGetter(file) for file in onlyWavFiles(getFilesInDir(dir_))])
 
     def importTrain(self, dir_: str) -> None:
         print("Importing training data")
@@ -124,6 +137,8 @@ class Model:
         )
 
     def __createModel(self, useSave: bool = True, dataDim: tuple = None) -> None:
+        assert self.model is None, "The underlying model has been already constructed!"
+
         if useSave:
             print(f"Creating model from {self.modelDir}")
             self.model = keras.models.load_model(self.modelDir)
@@ -143,6 +158,11 @@ class Model:
                 keras.layers.Dropout(0.25),
 
                 keras.layers.Conv2D(256, (3, 3), padding='same', activation="relu"),
+                keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
+                keras.layers.Dropout(0.25),
+
+                # Reduce the number of filters back to 128 -> Halves the number of weights in the next step
+                keras.layers.Conv2D(128, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
@@ -186,15 +206,17 @@ class Model:
             callbacks=self.modelCallbacks
         )
 
-    def predict(self, file: str):
+    def predict(self, file: str) -> Prediction:
         print(f"Getting prediction for {file}")
-        return self.model.predict(np.expand_dims(self.__getInputs(file), axis=0))
+        p = self.model.predict(np.expand_dims(self.__getInputs(file), axis=0))
+        return Prediction(file, p, self.preditionToLabel(p))
 
-    def predictionsFor(self, dir_: str):
+    def predictionsFor(self, dir_: str) -> list[Prediction]:
         print(f"Getting predictions for files in {dir_}")
         labels, data = self.__importData(dir_, labelGetter=lambda str_: str_.split("/")[-1])
+        ps = self.model.predict(np.array(data))
 
-        return labels, self.model.predict(np.array(data))
+        return [Prediction(labels[i], ps[i], self.preditionToLabel(ps[i])) for i in range(len(labels))]
 
     def preditionToLabel(self, pred: np.ndarray) -> str:
         return list(map(lambda t: t[0], filter(lambda t: t[1] == np.argmax(pred), self.labels.items())))[0]
