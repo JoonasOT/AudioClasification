@@ -106,6 +106,9 @@ class Model:
 
             out.append(self.__getInputs(file))
         # Return the labels, mfccs and others
+        sys.stdout.flush()
+        sys.stderr.flush()
+
         return labels, out
 
     def __createLabels(self, labels: list[str]) -> None:
