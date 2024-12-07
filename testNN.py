@@ -1,7 +1,5 @@
 from typing import Final
 
-import numpy as np
-
 import src.models.neural_network as NN
 from src.models.common import Settings
 

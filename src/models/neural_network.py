@@ -1,13 +1,11 @@
-from typing import NamedTuple, Final
-
+from typing import NamedTuple, Final, Callable
 import sys
-import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+
+from .environment import *
 import tensorflow
 import keras
-import numpy as np
 
+import numpy as np
 
 from src.dependencies.dependencies import Maybe
 from src.functions.audio_manipulation import getMFCC, getNormalizedAudio, limitSamplesTo, sampleTo, getSpectralCentroid
@@ -33,6 +31,8 @@ class Prediction(NamedTuple):
 
 
 class Model:
+    DEFAULT_LABEL_GETTER: Final[Callable[[str], str]] = lambda str_: str_.split("/")[-2]
+
     def __init__(self, settings: Settings, modelDir: str, useSave: bool = False):
         self.settings: Settings = settings
 
@@ -76,14 +76,14 @@ class Model:
 
         # Normalize the data
         mfcc = self.__normalize(mfcc.unwrap().unwrap()).T
-        #spectralCentroids = self.__normalize(spectralCentroids.unwrap().unwrap()).T
-
+        # spectralCentroids = self.__normalize(spectralCentroids.unwrap().unwrap()).T
 
         # What we use as outputs or inputs for NN
         outputs = [mfcc]
 
+        # Remap the outputs from separate matricies to a tensor
         xMax, yMax, zMax = len(mfcc), len(mfcc[0]), len(outputs)
-        data = np.zeros((xMax, yMax, zMax))
+        data = np.zeros((xMax, yMax, zMax))     # data[x][y] = list of the outputs at (x, y)
         for x in range(xMax):
             for y in range(yMax):
                 for z in range(zMax):
@@ -91,9 +91,12 @@ class Model:
 
         return data
 
-    def __importData(self, dir_: str, labelGetter=lambda str_: str_.split("/")[-2]):
+    def __importData(self, dir_: str, labelGetter=DEFAULT_LABEL_GETTER):
+        # Flush the std streams so if we get error messages we can be quite certain
+        # that they were from the following the files exectuded here
         sys.stdout.flush()
         sys.stderr.flush()
+
         labels: list[str] = []
         out: list = []
 
@@ -112,7 +115,7 @@ class Model:
                 self.labels[label] = __labelMax
                 __labelMax += 1
 
-    def importLabelsFrom(self, dir_: str, labelGetter=lambda str_: str_.split("/")[-2]) -> None:
+    def importLabelsFrom(self, dir_: str, labelGetter=DEFAULT_LABEL_GETTER) -> None:
         print(f"Importing labels from {dir_}")
         self.__createLabels([labelGetter(file) for file in onlyWavFiles(getFilesInDir(dir_))])
 
@@ -173,15 +176,20 @@ class Model:
                 keras.layers.Dense(2, activation="softmax")
             ]
         )
+
+        # Create a printout of the created model
         print("Created model:")
         self.model.summary()
         print()
         sys.stdout.flush()
+
+        # Compile the model for training
         self.model.compile(
             optimizer='adam',
             loss=keras.losses.CategoricalCrossentropy(from_logits=False),
             metrics=['accuracy']
         )
+
         # Function for stopping before overfitting
         self.modelCallbacks.append(keras.callbacks.EarlyStopping(patience=2))
         # Function for storing the model checkpoints to memory
@@ -215,7 +223,6 @@ class Model:
         print(f"Getting predictions for files in {dir_}")
         labels, data = self.__importData(dir_, labelGetter=lambda str_: str_.split("/")[-1])
         ps = self.model.predict(np.array(data))
-
         return [Prediction(labels[i], ps[i], self.preditionToLabel(ps[i])) for i in range(len(labels))]
 
     def preditionToLabel(self, pred: np.ndarray) -> str:

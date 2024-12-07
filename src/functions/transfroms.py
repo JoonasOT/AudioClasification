@@ -38,6 +38,7 @@ def mfcc(audio: AudioSignal, nMFCC, winLen: float, hopLen: float) -> np.ndarray:
         hop_length=ts(hopLen)
     )
 
+
 def spectralCentroid(audio: AudioSignal, nFFT: int, winLen: float, hopLen: float) -> np.ndarray:
     ts = __timeToSamples(audio)
     return librosa.feature.spectral_centroid(
@@ -47,6 +48,7 @@ def spectralCentroid(audio: AudioSignal, nFFT: int, winLen: float, hopLen: float
         hop_length=ts(hopLen),
         n_fft=nFFT
     )
+
 
 def getAmplitude(T: np.ndarray) -> np.ndarray:
     return np.abs(T)
