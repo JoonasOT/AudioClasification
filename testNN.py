@@ -26,7 +26,7 @@ def main():
     if not USE_SAVE:
         model.importTrain(DATA_DIR + TRAIN_DIR)
         model.importValidation(DATA_DIR + TEST_DIR)
-        history = model.train(20, 200)
+        history = model.train(20, 400)
     else:
         model.importLabelsFrom(DATA_DIR + TEST_DIR)
 

@@ -173,11 +173,13 @@ class Model:
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
-
                 keras.layers.Flatten(),
+
                 keras.layers.Dense(128, activation="relu"),
                 keras.layers.Dropout(0.25),
+
                 keras.layers.BatchNormalization(),
+
                 keras.layers.Dense(ONE_HOT_DEPTH, activation="softmax")
             ]
         )
@@ -196,7 +198,7 @@ class Model:
         )
 
         # Function for stopping before overfitting
-        self.modelCallbacks.append(keras.callbacks.EarlyStopping(patience=2))
+        self.modelCallbacks.append(keras.callbacks.EarlyStopping(patience=4))
         # Function for storing the model checkpoints to memory
         self.modelCallbacks.append(
             keras.callbacks.ModelCheckpoint(
