@@ -133,15 +133,16 @@ class Model:
         self.model = keras.Sequential(
             [
                 keras.layers.Input(dataDim),
-                keras.layers.Conv2D(126, (3, 3), padding='same', activation="relu"),
+
+                keras.layers.Conv2D(64, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
 
 
-                keras.layers.Conv2D(126*2, (3, 3), padding='same', activation="relu"),
+                keras.layers.Conv2D(128, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
-                keras.layers.Conv2D(126*4, (3, 3), padding='same', activation="relu"),
+                keras.layers.Conv2D(256, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
                 keras.layers.Dropout(0.25),
 
