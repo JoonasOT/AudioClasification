@@ -5,8 +5,9 @@ def getFilesInDir(directory: str) -> list:
     f = []
     for (dirpath, dirnames, filenames) in walk(directory):
         f.extend([dirpath + "/" + file for file in filenames])
-
-    return [path.replace("\\", "/") for path in f]
+    f = [path.replace("\\", "/") for path in f]
+    f.sort()
+    return f
 
 
 def removeDotFiles(dirs: list[str]) -> list[str]:
