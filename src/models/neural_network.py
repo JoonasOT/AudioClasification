@@ -16,6 +16,8 @@ from src.models.common import Settings
 
 # TODO: Move this inside ModelData and Model somehow
 # Since this is here the user cannot configure this easily themselves
+from ..structures.audiosignal import AudioSignal
+
 ONE_HOT_DEPTH: Final[int] = 3
 
 
@@ -44,7 +46,8 @@ class ModelData(NamedTuple):
 class Prediction(NamedTuple):
     file: str
     weights: np.ndarray
-    label: str
+    gotLabel: str
+    correctLabel: str
 
 
 class Model:
@@ -78,6 +81,10 @@ class Model:
             sampleTo(self.settings.samplerate),
             limitSamplesTo(self.settings.samples)
         )
+        if audio.transform(AudioSignal.getSignal).transform(lambda s: len(s) < self.settings.samples).unwrap():
+            raise IOError(f"File {file} is too short! The file needs to be atleast "
+                          f"{self.settings.samples * 1.0/self.settings.samplerate:.2f} s long!")
+
         # Get MFCC constants
         mfcc = audio.construct(Maybe, False).transform(
             getMFCC, False,
@@ -131,6 +138,7 @@ class Model:
         if self.useCache and os.path.exists(cachedFile):
             print(f"Reading from cache {cachedFile}")
             labels, out = self.__cacheDataRead(cachedFile)
+            labels = [labelGetter(label) for label in labels]
 
         else:
             # Flush the std streams so if we get error messages we can be quite certain
@@ -149,7 +157,7 @@ class Model:
 
             if createCache:
                 print(f"Creating cache {cachedFile}")
-                self.__cacheDataWrite(labels, out, cachedFile)
+                self.__cacheDataWrite(onlyWavFiles(getFilesInDir(dir_)), out, cachedFile)
 
         return labels, out
 
@@ -270,8 +278,9 @@ class Model:
     def predictionsFor(self, dir_: str) -> list[Prediction]:
         print(f"Getting predictions for files in {dir_}")
         labels, data = self.__importData(dir_, labelGetter=lambda str_: str_.split("/")[-1], createCache=False)
+        files = onlyWavFiles(getFilesInDir(dir_))
         ps = self.model.predict(np.array(data))
-        return [Prediction(labels[i], ps[i], self.preditionToLabel(ps[i])) for i in range(len(labels))]
+        return [Prediction(files[i], ps[i], self.preditionToLabel(ps[i]), labels[i]) for i in range(len(labels))]
 
     def preditionToLabel(self, pred: np.ndarray) -> str:
         return list(map(lambda t: t[0], filter(lambda t: t[1] == np.argmax(pred), self.labels.items())))[0]

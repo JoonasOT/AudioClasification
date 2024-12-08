@@ -22,18 +22,34 @@ SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, 
 
 
 def main():
+    # Load model from memory or train a new one?
     USE_SAVE = True
-    model = NN.Model(SETTINGS, "./models/checkpoint.keras", useCachedValues=True, useSave=USE_SAVE)
+    # Compute MFCCs or try to first get them from cache?
+    COMPUTE_MFCCS_EVERYTIME = False
 
+    HIGHLIGHT_INCORRECT = True
+
+    model = NN.Model(
+        SETTINGS,
+        "./models/checkpoint.keras",
+        useCachedValues=not COMPUTE_MFCCS_EVERYTIME,
+        useSave=USE_SAVE
+    )
+
+    # Logic for using the model saved in Memory or training one from scratch
     if not USE_SAVE:
         model.importTrain(DATA_DIR + TRAIN_DIR)
         model.importValidation(DATA_DIR + TEST_DIR)
-        history = model.train(13, 100)
+        history = model.train(13, 100)  # TODO: Save this!
     else:
+        # If we imported from memory we still have to initialize the labels
+        # to get predictions etc
         model.importLabelsFrom(DATA_DIR + TEST_DIR)
 
+    # Predictions:
     for prediction in model.predictionsFor(DATA_DIR + TEST_DIR):
-        print(prediction, file=sys.stdout if prediction.file == prediction.label else sys.stderr)
+        correct = prediction.gotLabel == prediction.correctLabel if HIGHLIGHT_INCORRECT else True
+        print(prediction, file=sys.stdout if correct else sys.stderr)
 
 
 if __name__ == '__main__':
