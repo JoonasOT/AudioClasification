@@ -1,24 +1,22 @@
-import json
+from __future__ import annotations
 from typing import NamedTuple, Final, Callable
-import sys
 
+import sys
 from .environment import *
+
 import tensorflow
 import keras
 
 import numpy as np
+import json
 
 from src.dependencies.dependencies import Maybe
-from src.functions.audio_manipulation import getMFCC, getNormalizedAudio, limitSamplesTo, sampleTo, getSpectralCentroid
-from src.functions.file_management import onlyWavFiles, getFilesInDir
-from src.models.common import Settings
-
-
-# TODO: Move this inside ModelData and Model somehow
-# Since this is here the user cannot configure this easily themselves
 from ..structures.audiosignal import AudioSignal
 
-ONE_HOT_DEPTH: Final[int] = 3
+from src.models.common import Settings
+from src.functions.file_management import onlyWavFiles, getFilesInDir
+from src.functions.audio_manipulation import getNormalizedAudio, limitSamplesTo, sampleTo,\
+                                             getMFCC, getSpectralCentroid
 
 
 class json_serialize(json.JSONEncoder):
@@ -35,12 +33,13 @@ class json_serialize(json.JSONEncoder):
 class ModelData(NamedTuple):
     labels: np.ndarray
     data: list[np.ndarray]
+    ref: Model
 
     def get(self):
         # If you get an error about the data being inhomogenous it is most likely due to having
         # included a too short of an audio clip. All audio clips need to be ATLEAST as long as the
         # set length in the Settings object given to the Model constructor
-        return np.array(self.data), tensorflow.one_hot(self.labels, depth=ONE_HOT_DEPTH)
+        return np.array(self.data), tensorflow.one_hot(self.labels, depth=self.ref.ONE_HOT_DEPTH)
 
 
 class Prediction(NamedTuple):
@@ -57,6 +56,7 @@ class Model:
         self.settings: Settings = settings
 
         self.labels: dict[str, int] = {}
+        self.ONE_HOT_DEPTH: int = 0
 
         self.trainData: ModelData = None
         self.validationData: ModelData = None
@@ -93,6 +93,13 @@ class Model:
             self.settings.hopSize
         )
 
+        mfccByTwo = audio.construct(Maybe, False).transform(
+            getMFCC, False,
+            self.settings.binCount,
+            self.settings.winLen / 2,
+            self.settings.hopSize / 2
+        )
+
         spectralCentroids = audio.construct(Maybe, False).transform(
             getSpectralCentroid, False,
             self.settings.binCount,
@@ -103,9 +110,10 @@ class Model:
         # Normalize the data
         mfcc = self.__normalize(mfcc.unwrap().unwrap()).T
         # spectralCentroids = self.__normalize(spectralCentroids.unwrap().unwrap()).T
+        mfccByTwo = self.__normalize(mfccByTwo.unwrap().unwrap()).T
 
         # What we use as outputs or inputs for NN
-        outputs = [mfcc]
+        outputs = [mfcc, mfccByTwo[:len(mfcc), :], mfccByTwo[len(mfcc):2*len(mfcc), :]]
 
         # Remap the outputs from separate matricies to a tensor
         xMax, yMax, zMax = len(mfcc), len(mfcc[0]), len(outputs)
@@ -167,6 +175,7 @@ class Model:
             if label not in self.labels:
                 self.labels[label] = __labelMax
                 __labelMax += 1
+        self.ONE_HOT_DEPTH = __labelMax
 
     def importLabelsFrom(self, dir_: str, labelGetter=DEFAULT_LABEL_GETTER) -> None:
         print(f"Importing labels from {dir_}")
@@ -179,7 +188,8 @@ class Model:
         self.__createLabels(labels)
         self.trainData = ModelData(
             np.array(list(map(lambda s: self.labels[s], labels))),
-            data
+            data,
+            self
         )
         self.__createModel(False, np.shape(data[0]))
 
@@ -189,7 +199,8 @@ class Model:
 
         self.validationData = ModelData(
             np.array(list(map(lambda s: self.labels[s], labels))),
-            data
+            data,
+            self
         )
 
     def __createModel(self, useSave: bool = True, dataDim: tuple = None) -> None:
@@ -227,7 +238,7 @@ class Model:
 
                 keras.layers.BatchNormalization(),
 
-                keras.layers.Dense(ONE_HOT_DEPTH, activation="softmax")
+                keras.layers.Dense(self.ONE_HOT_DEPTH, activation="softmax")
             ]
         )
 
@@ -245,7 +256,7 @@ class Model:
         )
 
         # Function for stopping before overfitting
-        self.modelCallbacks.append(keras.callbacks.EarlyStopping(patience=2))
+        self.modelCallbacks.append(keras.callbacks.EarlyStopping(patience=3))
         # Function for storing the model checkpoints to memory
         self.modelCallbacks.append(
             keras.callbacks.ModelCheckpoint(
@@ -257,11 +268,11 @@ class Model:
             )
         )
 
-    def train(self, epochs: int, steps: int):
+    def train(self, epochs: int, steps: int, saveHistory: str = None):
         print("Training Neural Network:")
         trainingDataset = tensorflow.data.Dataset.from_tensor_slices(self.trainData.get())
         validationDataset = tensorflow.data.Dataset.from_tensor_slices(self.validationData.get())
-        return self.model.fit(
+        history = self.model.fit(
             trainingDataset.shuffle(len(self.trainData.labels)).batch(128).repeat(),
             epochs=epochs,
             steps_per_epoch=steps,
@@ -269,6 +280,10 @@ class Model:
             validation_steps=2,
             callbacks=self.modelCallbacks
         )
+        if saveHistory is not None:
+            with open(saveHistory + ".json", "w") as f:
+                f.write(json.dumps(history.history))
+        return history
 
     def predict(self, file: str) -> Prediction:
         print(f"Getting prediction for {file}")
