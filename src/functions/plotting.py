@@ -36,10 +36,15 @@ def plotSpectrogram(spectrogram: np.ndarray, maxF: float, maxT: float, title: st
         interpolation='none',
         extent=(0.0, maxT, 0.0, maxF)
     )
-    plt.title(title)
     plt.xlabel("Time (s)")
     plt.ylabel("Frequency (Hz)")
+    plt.colorbar()
+    plt.title(title)
 
 
 def keepPlotsOpen():
     plt.show()
+
+
+def save(where: str):
+    plt.savefig("./img/" + where)
