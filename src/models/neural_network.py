@@ -277,7 +277,7 @@ class Model:
 
     def predictionsFor(self, dir_: str) -> list[Prediction]:
         print(f"Getting predictions for files in {dir_}")
-        lG = Model.DEFAULT_LABEL_GETTER if not self.useCache else lambda str_: str_.split("/")[-1]
+        lG = Model.DEFAULT_LABEL_GETTER if not self.useCache else lambda str_: str_.split("/")[-2]
         labels, data = self.__importData(dir_, labelGetter=lG, createCache=False)
         files = onlyWavFiles(getFilesInDir(dir_))
         ps = self.model.predict(np.array(data))
