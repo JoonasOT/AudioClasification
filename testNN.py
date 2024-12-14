@@ -23,9 +23,9 @@ SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, 
 
 def main():
     # Load model from memory or train a new one?
-    USE_SAVE = True
+    USE_SAVE = False
     # Compute MFCCs or try to first get them from cache?
-    COMPUTE_MFCCS_EVERYTIME = False
+    COMPUTE_MFCCS_EVERYTIME = True
 
     HIGHLIGHT_INCORRECT = True
 
@@ -40,7 +40,7 @@ def main():
     if not USE_SAVE:
         model.importTrain(DATA_DIR + TRAIN_DIR)
         model.importValidation(DATA_DIR + TEST_DIR)
-        history = model.train(13, 100)  # TODO: Save this!
+        model.train(13, 100, saveHistory="./models/history")
     else:
         # If we imported from memory we still have to initialize the labels
         # to get predictions etc
