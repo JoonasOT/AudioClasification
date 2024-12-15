@@ -12,7 +12,7 @@ from src.functions.audio_manipulation import getNormalizedAudio, limitSamplesTo,
 # Functions for getting fft, and stft of an audio
 from src.functions.audio_manipulation import FreqType, getSpectrum, getSpectrogram
 # Function for getting mfcc
-from src.functions.audio_manipulation import getMFCC
+from src.functions.audio_manipulation import getMFCC, getSpectralCentroid
 
 
 def getImages(dir_: str) -> dict[str, list[str]]:
@@ -24,7 +24,7 @@ def getImages(dir_: str) -> dict[str, list[str]]:
 
 
 SAVE_DIR = "./img/"
-TAKE = 10
+TAKE = 1
 
 
 def viz():
@@ -45,7 +45,7 @@ def viz():
                 save(f"spectrum_{label}_{index}")
 
             # Form spectrograms
-            plot = True
+            plot = False
             spectrogram = getSpectrogram(audio, FreqType.DECIBEL, WIN_SIZE, HOP_SIZE, plot=plot)
             if plot:
                 save(f"spectrogram_{label}_{index}")
@@ -55,6 +55,14 @@ def viz():
             mfcc = getMFCC(audio, N_MFCC, WIN_SIZE, HOP_SIZE, plot=plot)
             if plot:
                 save(f"mfcc_{label}_{index}")
+
+            # Form spectral centroid
+            plot = True
+            sc = getSpectralCentroid(audio, int(WIN_SIZE * SAMPLERATE), WIN_SIZE, HOP_SIZE, plot=plot)
+            if plot:
+                pass
+                # save(f"spectralCentroid_{label}_{index}")
+
 
     keepPlotsOpen()
 
