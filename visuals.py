@@ -24,7 +24,7 @@ def getImages(dir_: str) -> dict[str, list[str]]:
 
 
 SAVE_DIR = "./img/"
-TAKE = 1
+TAKE = 20
 
 
 def viz():
@@ -33,19 +33,19 @@ def viz():
         shuffle(files)
         for index, file in enumerate(files[:TAKE]):
             # Create a normalized AudioSignal
-            plot = False
+            plot = True
             audio = getNormalizedAudio(file, plot=plot).transformers(sampleTo(SAMPLERATE), limitSamplesTo(N_SAMPLES))
             if plot:
                 save(f"audio_{label}_{index}")
 
             # Form spectrums
-            plot = False
+            plot = True
             spectrum = getSpectrum(audio, FreqType.DECIBEL, plot=plot)
             if plot:
                 save(f"spectrum_{label}_{index}")
 
             # Form spectrograms
-            plot = False
+            plot = True
             spectrogram = getSpectrogram(audio, FreqType.DECIBEL, WIN_SIZE, HOP_SIZE, plot=plot)
             if plot:
                 save(f"spectrogram_{label}_{index}")
@@ -60,8 +60,7 @@ def viz():
             plot = True
             sc = getSpectralCentroid(audio, int(WIN_SIZE * SAMPLERATE), WIN_SIZE, HOP_SIZE, plot=plot)
             if plot:
-                pass
-                # save(f"spectralCentroid_{label}_{index}")
+                save(f"spectralCentroid_{label}_{index}")
 
 
     keepPlotsOpen()
