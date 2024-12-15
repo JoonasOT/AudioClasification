@@ -37,3 +37,6 @@ class AudioSignal:
 
     def play(self, wait=True) -> None:
         play(self.signal, self.samplerate, blocking=wait)
+
+    def getTime(self) -> float:
+        return (1.0 / self.samplerate) * len(self.signal)
