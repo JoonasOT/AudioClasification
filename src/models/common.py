@@ -3,7 +3,7 @@ import numpy as np
 
 
 from src.functions.audio_manipulation import getNormalizedAudio, getMFCC, conditionalRunner, sampleTo, limitSamplesTo, \
-    getSpectralCentroid
+    getSpectralCentroid, getSpectralBandwidth
 from src.functions.file_management import onlyWavFiles, getFilesInDir
 
 
@@ -63,4 +63,23 @@ def getSpectralCentroids(path: str, modelNameGetter: Callable[[str], str], nFFT:
             spectralCentroids[label].append(spectralCentroids.unwrap())
         else:
             spectralCentroids[label] = [spectralCentroids.unwrap()]
-        
+    
+    return spectralCentroids
+
+
+def getSpectralBandwidths(path: str, modelNameGetter: Callable[[str], str], nFFT: int, winLen: float, 
+                         hopSize: float, samplerate: int = None, samples: int = None):
+    for file in onlyWavFiles(getFilesInDir(path)):
+        audio = getNormalizedAudio(file, plot=False).transformers(
+            conditionalRunner(samplerate is not None, sampleTo(samplerate), lambda v: v),
+            conditionalRunner(samples is not None, limitSamplesTo(samples), lambda v: v),
+        )
+        assert bool(audio), "File reading errornous!"
+        label = modelNameGetter(file)
+        spectralBandwidths = getSpectralBandwidth(audio, nFFT, winLen, hopSize, plot=False)
+        if label in spectralBandwidths:
+            spectralBandwidths[label].append(spectralBandwidths.unwrap())
+        else:
+            spectralBandwidths[label] = [spectralBandwidths.unwrap()]
+    
+    return spectralBandwidths

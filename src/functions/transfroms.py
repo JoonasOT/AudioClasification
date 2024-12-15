@@ -49,6 +49,16 @@ def spectralCentroid(audio: AudioSignal, nFFT: int, winLen: float, hopLen: float
         n_fft=nFFT
     )
 
+def spectralBandwidth(audio: AudioSignal, nFFT: int, winLen: float, hopLen: float):
+    ts = __timeToSamples(audio)
+    return librosa.feature.spectral_bandwidth(
+        y=audio,
+        sr=audio.getSamplerate,
+        win_length=ts(winLen),
+        hop_length=ts(hopLen),
+        n_fft=nFFT
+    )
+
 
 def getAmplitude(T: np.ndarray) -> np.ndarray:
     return np.abs(T)
