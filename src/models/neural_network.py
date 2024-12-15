@@ -263,7 +263,7 @@ class Model:
         )
 
     def train(self, epochs: int, steps: int, saveHistory: str = None):
-        print("Training Neural Network:")
+        print(f"Training Neural Network (for {', '.join(self.labels.keys())}):")
         trainingDataset = tensorflow.data.Dataset.from_tensor_slices(self.trainData.get())
         validationDataset = tensorflow.data.Dataset.from_tensor_slices(self.validationData.get())
         history = self.model.fit(
