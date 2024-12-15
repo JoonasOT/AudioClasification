@@ -1,5 +1,13 @@
 from os import walk
 
+from typing_extensions import Final
+
+WORKING_DIR: Final[str] = "."
+
+
+def getFullPath(*steps) -> str:
+    return "/".join(steps)
+
 
 def getFilesInDir(directory: str) -> list:
     f = []
