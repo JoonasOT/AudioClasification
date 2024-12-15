@@ -93,27 +93,21 @@ class Model:
             self.settings.hopSize
         )
 
-        mfccByTwo = audio.construct(Maybe, False).transform(
-            getMFCC, False,
-            self.settings.binCount,
-            self.settings.winLen / 2,
-            self.settings.hopSize / 2
-        )
-
         spectralCentroids = audio.construct(Maybe, False).transform(
             getSpectralCentroid, False,
-            self.settings.binCount,
+            int(self.settings.winLen * self.settings.samplerate),
             self.settings.winLen,
             self.settings.hopSize
         )
 
         # Normalize the data
         mfcc = self.__normalize(mfcc.unwrap().unwrap()).T
-        # spectralCentroids = self.__normalize(spectralCentroids.unwrap().unwrap()).T
-        mfccByTwo = self.__normalize(mfccByTwo.unwrap().unwrap()).T
+        spectralCentroids = np.repeat(self.__normalize(spectralCentroids.unwrap().unwrap()),
+                                      self.settings.binCount,
+                                      axis=0).T
 
         # What we use as outputs or inputs for NN
-        outputs = [mfcc, mfccByTwo[:len(mfcc), :], mfccByTwo[len(mfcc):2*len(mfcc), :]]
+        outputs = [mfcc, spectralCentroids]
 
         # Remap the outputs from separate matricies to a tensor
         xMax, yMax, zMax = len(mfcc), len(mfcc[0]), len(outputs)
