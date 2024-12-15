@@ -42,6 +42,18 @@ def plotSpectrogram(spectrogram: np.ndarray, maxF: float, maxT: float, title: st
     plt.title(title)
 
 
+def plotCentralSpectroid(centroid: np.ndarray, tMax: float, title: str = "") -> None:
+    if centroid.shape[1] != 1:
+        centroid = centroid.T
+    plt.figure()
+    x_axis = np.linspace(0, tMax, len(centroid))
+    plt.plot(x_axis, centroid)
+    plt.grid()
+    plt.title(title)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Amplitude")
+
+
 def keepPlotsOpen():
     plt.show()
 
