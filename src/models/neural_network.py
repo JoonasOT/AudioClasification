@@ -76,7 +76,6 @@ class Model:
         return arr + 0.5
 
     def __getInputs(self, file: str) -> np.ndarray:
-        # print(file)
         audio = getNormalizedAudio(file).transformers(
             sampleTo(self.settings.samplerate),
             limitSamplesTo(self.settings.samples)
@@ -108,7 +107,7 @@ class Model:
 
         # What we use as outputs or inputs for NN
         outputs = [mfcc, spectralCentroids]
-
+        
         # Remap the outputs from separate matricies to a tensor
         xMax, yMax, zMax = len(mfcc), len(mfcc[0]), len(outputs)
         data = np.zeros((xMax, yMax, zMax))     # data[x][y] = list of the outputs at (x, y)
@@ -287,8 +286,10 @@ class Model:
     def predictionsFor(self, dir_: str) -> list[Prediction]:
         print(f"Getting predictions for files in {dir_}")
         lG = Model.DEFAULT_LABEL_GETTER if not self.useCache else lambda str_: str_.split("/")[-2]
+
         labels, data = self.__importData(dir_, labelGetter=lG, createCache=False)
         files = onlyWavFiles(getFilesInDir(dir_))
+
         ps = self.model.predict(np.array(data))
         return [Prediction(files[i], ps[i], self.preditionToLabel(ps[i]), labels[i]) for i in range(len(labels))]
 
