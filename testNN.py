@@ -8,6 +8,7 @@ from src.models.common import Settings
 
 DATA_DIR: Final[str] = "data"
 TEST_DIR: Final[str] = "test"
+OWN_DIR: Final[str] = "own"
 TRAIN_DIR: Final[str] = "train"
 
 MODEL_DIR: Final[str] = "models"
@@ -31,7 +32,7 @@ SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, 
 
 def main():
     # Load model from memory or train a new one?
-    USE_SAVE = False
+    USE_SAVE = True
     # Compute MFCCs or try to first get them from cache?
     COMPUTE_MFCCS_EVERYTIME = False
 
@@ -70,7 +71,8 @@ def main():
         model.importLabelsFrom(validateDirPath)
 
     # Predictions:
-    for prediction in model.predictionsFor(validateDirPath):
+    testPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, OWN_DIR) if USE_FINAL else validateDirPath
+    for prediction in model.predictionsFor(testPath):
         correct = prediction.gotLabel == prediction.correctLabel if HIGHLIGHT_INCORRECT else True
         print(prediction, file=sys.stdout if correct else sys.stderr)
 

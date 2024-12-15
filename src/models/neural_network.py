@@ -107,7 +107,7 @@ class Model:
 
         # What we use as outputs or inputs for NN
         outputs = [mfcc, spectralCentroids]
-        
+
         # Remap the outputs from separate matricies to a tensor
         xMax, yMax, zMax = len(mfcc), len(mfcc[0]), len(outputs)
         data = np.zeros((xMax, yMax, zMax))     # data[x][y] = list of the outputs at (x, y)
