@@ -275,7 +275,7 @@ class Model:
             callbacks=self.modelCallbacks
         )
         if saveHistory is not None:
-            with open(saveHistory + ".json", "w") as f:
+            with open(saveHistory, "w") as f:
                 f.write(json.dumps(history.history))
         return history
 
