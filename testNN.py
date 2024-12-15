@@ -2,12 +2,20 @@ import sys
 
 from typing import Final
 
+from src.functions.file_management import WORKING_DIR, getFullPath
 import src.models.neural_network as NN
 from src.models.common import Settings
 
-DATA_DIR: Final[str] = "./data"
-TEST_DIR: Final[str] = "/test"
-TRAIN_DIR: Final[str] = "/train"
+DATA_DIR: Final[str] = "data"
+TEST_DIR: Final[str] = "test"
+TRAIN_DIR: Final[str] = "train"
+
+MODEL_DIR: Final[str] = "models"
+MODEL_NAME: Final[str] = "model.keras"
+HISTORY_NAME: Final[str] = "history.json"
+
+FINAL_DIR: Final[str] = "final"
+
 
 SAMPLERATE: Final[int] = 22100
 DURATION: Final[float] = 4.0
@@ -25,26 +33,41 @@ def main():
     # Load model from memory or train a new one?
     USE_SAVE = False
     # Compute MFCCs or try to first get them from cache?
-    COMPUTE_MFCCS_EVERYTIME = True
+    COMPUTE_MFCCS_EVERYTIME = False
 
     HIGHLIGHT_INCORRECT = True
+    
+    # Use the final folders?
+    USE_FINAL = True
 
     model = NN.Model(
         SETTINGS,
-        "./models/checkpoint.keras",
+        getFullPath(WORKING_DIR, MODEL_DIR, FINAL_DIR, MODEL_NAME) if USE_FINAL else
+        getFullPath(WORKING_DIR, MODEL_DIR, MODEL_NAME),
         useCachedValues=not COMPUTE_MFCCS_EVERYTIME,
         useSave=USE_SAVE
     )
 
+    # Get Paths to folders containing data
+    trainDirPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, TRAIN_DIR) if USE_FINAL else \
+        getFullPath(WORKING_DIR, DATA_DIR, TRAIN_DIR)
+
+    validateDirPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, TEST_DIR) if USE_FINAL else \
+        getFullPath(WORKING_DIR, DATA_DIR, TEST_DIR)
+
     # Logic for using the model saved in Memory or training one from scratch
     if not USE_SAVE:
-        model.importTrain(DATA_DIR + TRAIN_DIR)
-        model.importValidation(DATA_DIR + TEST_DIR)
-        model.train(13, 100, saveHistory="./models/history")
+        model.importTrain(trainDirPath)
+        model.importValidation(validateDirPath)
+
+        historyPath = getFullPath(WORKING_DIR, MODEL_DIR, FINAL_DIR, HISTORY_NAME) if USE_FINAL else \
+            getFullPath(WORKING_DIR, MODEL_DIR, HISTORY_NAME)
+
+        model.train(13, 100, saveHistory=historyPath)
     else:
         # If we imported from memory we still have to initialize the labels
         # to get predictions etc
-        model.importLabelsFrom(DATA_DIR + TEST_DIR)
+        model.importLabelsFrom(validateDirPath)
 
     # Predictions:
     for prediction in model.predictionsFor(DATA_DIR + TEST_DIR):
