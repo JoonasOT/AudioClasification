@@ -36,7 +36,7 @@ def main():
     COMPUTE_MFCCS_EVERYTIME = False
 
     HIGHLIGHT_INCORRECT = True
-    
+
     # Use the final folders?
     USE_FINAL = True
 
@@ -70,7 +70,7 @@ def main():
         model.importLabelsFrom(validateDirPath)
 
     # Predictions:
-    for prediction in model.predictionsFor(DATA_DIR + TEST_DIR):
+    for prediction in model.predictionsFor(validateDirPath):
         correct = prediction.gotLabel == prediction.correctLabel if HIGHLIGHT_INCORRECT else True
         print(prediction, file=sys.stdout if correct else sys.stderr)
 
