@@ -15,8 +15,8 @@ from ..structures.audiosignal import AudioSignal
 
 from src.models.common import Settings
 from src.functions.file_management import onlyWavFiles, getFilesInDir
-from src.functions.audio_manipulation import getNormalizedAudio, limitSamplesTo, sampleTo,\
-                                             getMFCC, getSpectralCentroid
+from src.functions.audio_manipulation import getNormalizedAudio, limitSamplesTo, sampleTo, \
+    getMFCC, getSpectralCentroid
 
 
 class json_serialize(json.JSONEncoder):
@@ -47,6 +47,18 @@ class Prediction(NamedTuple):
     weights: np.ndarray
     gotLabel: str
     correctLabel: str
+
+    def __str__(self):
+        HIGHLIGHT = '\033[1;4;97m'
+        NORM = '\033[0;0m'
+        Values = [
+            self.gotLabel.rjust(4),
+            self.correctLabel.rjust(4),
+            f'{np.max(self.weights) * 100:.2f}'.rjust(6) + "%",
+            self.file
+        ]
+        Labels = [HIGHLIGHT + v + NORM for v in ["Got", "Was", "Confidence", "File"]]
+        return "Pred[" + ", ".join([f"{v}: {Values[i]}" for i, v in enumerate(Labels)]) + "]"
 
 
 class Model:
@@ -82,7 +94,7 @@ class Model:
         )
         if audio.transform(AudioSignal.getSignal).transform(lambda s: len(s) < self.settings.samples).unwrap():
             raise IOError(f"File {file} is too short! The file needs to be atleast "
-                          f"{self.settings.samples * 1.0/self.settings.samplerate:.2f} s long!")
+                          f"{self.settings.samples * 1.0 / self.settings.samplerate:.2f} s long!")
 
         # Get MFCC constants
         mfcc = audio.construct(Maybe, False).transform(
@@ -110,7 +122,7 @@ class Model:
 
         # Remap the outputs from separate matricies to a tensor
         xMax, yMax, zMax = len(mfcc), len(mfcc[0]), len(outputs)
-        data = np.zeros((xMax, yMax, zMax))     # data[x][y] = list of the outputs at (x, y)
+        data = np.zeros((xMax, yMax, zMax))  # data[x][y] = list of the outputs at (x, y)
         for x in range(xMax):
             for y in range(yMax):
                 for z in range(zMax):
@@ -211,7 +223,6 @@ class Model:
 
                 keras.layers.Conv2D(256, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
-
 
                 keras.layers.Conv2D(512, (3, 3), padding='same', activation="relu"),
                 keras.layers.MaxPooling2D((2, 2), strides=2, padding='same'),
