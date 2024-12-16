@@ -6,7 +6,7 @@ WORKING_DIR: Final[str] = "."
 
 
 def getFullPath(*steps) -> str:
-    return "/".join(steps)
+    return "/".join(list(filter(lambda dir_: dir_ != "", steps)))
 
 
 def getFilesInDir(directory: str) -> list:

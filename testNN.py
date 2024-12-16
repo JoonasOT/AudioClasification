@@ -39,33 +39,28 @@ def main():
 
     # Use the final folders?
     USE_FINAL = True
+    FINAL_ = FINAL_DIR if USE_FINAL else ""
 
     # Save prediction results to file?
     SAVE_PREDICTIONS = True
 
     model = NN.Model(
         SETTINGS,
-        getFullPath(WORKING_DIR, MODEL_DIR, FINAL_DIR, MODEL_NAME) if USE_FINAL else
-        getFullPath(WORKING_DIR, MODEL_DIR, MODEL_NAME),
+        getFullPath(WORKING_DIR, MODEL_DIR, FINAL_, MODEL_NAME),
         useCachedValues=not COMPUTE_MFCCS_EVERYTIME,
         useSave=USE_SAVE
     )
 
     # Get Paths to folders containing data
-    trainDirPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, TRAIN_DIR) if USE_FINAL else \
-        getFullPath(WORKING_DIR, DATA_DIR, TRAIN_DIR)
-
-    validateDirPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, TEST_DIR) if USE_FINAL else \
-        getFullPath(WORKING_DIR, DATA_DIR, TEST_DIR)
+    trainDirPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_, TRAIN_DIR)
+    validateDirPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_, TEST_DIR)
 
     # Logic for using the model saved in Memory or training one from scratch
     if not USE_SAVE:
         model.importTrain(trainDirPath)
         model.importValidation(validateDirPath)
 
-        historyPath = getFullPath(WORKING_DIR, MODEL_DIR, FINAL_DIR, HISTORY_NAME) if USE_FINAL else \
-            getFullPath(WORKING_DIR, MODEL_DIR, HISTORY_NAME)
-
+        historyPath = getFullPath(WORKING_DIR, MODEL_DIR, FINAL_, HISTORY_NAME)
         model.train(13, 100, saveHistory=historyPath)
     else:
         # If we imported from memory we still have to initialize the labels
@@ -79,8 +74,9 @@ def main():
         results.append(prediction)
         print(prediction)
 
+    # Save the predictions
     if SAVE_PREDICTIONS:
-        OUT_PATH = getFullPath(WORKING_DIR, MODEL_DIR, FINAL_DIR, PREDICTION_NAME)
+        OUT_PATH = getFullPath(WORKING_DIR, MODEL_DIR, FINAL_, PREDICTION_NAME)
         HEADERS = ["Got", "Was", "Confidence", "File"]
         DELIM = ";"
         out = DELIM.join(HEADERS) + "\n"
