@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from scipy.io.wavfile import read as read_wav, write as write_wav
-from numpy import ndarray, sqrt, mean, float64
+from numpy import ndarray, sqrt, mean, float64, shape
 import librosa
 from sounddevice import play
 
@@ -11,7 +11,10 @@ class AudioSignal:
         self.name = file
         content = read_wav(file)
         self.samplerate: int = content[0]
-        self.signal: ndarray = float64(content[1])
+        if content[1].ndim > 1:
+            self.signal: ndarray = float64(content[1].T[0])
+        else:
+            self.signal: ndarray = float64(content[1])
 
     def rmse(self) -> float:
         return sqrt(mean(self.signal**2))
