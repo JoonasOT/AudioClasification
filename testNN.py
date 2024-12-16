@@ -14,6 +14,7 @@ TRAIN_DIR: Final[str] = "train"
 MODEL_DIR: Final[str] = "models"
 MODEL_NAME: Final[str] = "model.keras"
 HISTORY_NAME: Final[str] = "history.json"
+PREDICTION_NAME: Final[str] = "predictions.csv"
 
 FINAL_DIR: Final[str] = "final"
 
@@ -38,6 +39,9 @@ def main():
 
     # Use the final folders?
     USE_FINAL = True
+
+    # Save prediction results to file?
+    SAVE_PREDICTIONS = True
 
     model = NN.Model(
         SETTINGS,
@@ -70,8 +74,20 @@ def main():
 
     # Predictions:
     testPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, OWN_DIR) if USE_FINAL else validateDirPath
+    results: list[NN.Prediction] = []
     for prediction in model.predictionsFor(testPath):
+        results.append(prediction)
         print(prediction)
+
+    if SAVE_PREDICTIONS:
+        OUT_PATH = getFullPath(WORKING_DIR, MODEL_DIR, FINAL_DIR, PREDICTION_NAME)
+        HEADERS = ["Got", "Was", "Confidence", "File"]
+        DELIM = ";"
+        out = DELIM.join(HEADERS) + "\n"
+        for pred in results:
+            out += DELIM.join([pred.gotLabel, pred.correctLabel, pred.getConfidence(), pred.file]) + "\n"
+        with open(OUT_PATH, "w") as f:
+            f.write(out)
 
 
 if __name__ == '__main__':

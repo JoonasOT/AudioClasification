@@ -48,6 +48,9 @@ class Prediction(NamedTuple):
     gotLabel: str
     correctLabel: str
 
+    def getConfidence(self) -> str:
+        return f"{np.max(self.weights) * 100:.2f}"
+
     def __str__(self):
         HIGHLIGHT = '\033[1;4;97m'
         WRONG = '\033[1;31m'
@@ -56,7 +59,7 @@ class Prediction(NamedTuple):
         Values = [COLOR + v + NORM for v in [
             self.gotLabel.rjust(4),
             self.correctLabel.rjust(4),
-            f'{np.max(self.weights) * 100:.2f}'.rjust(6) + "%",
+            self.getConfidence().rjust(6) + "%",
             self.file
         ]]
         Labels = [HIGHLIGHT + v + NORM for v in ["Got", "Was", "Confidence", "File"]]
