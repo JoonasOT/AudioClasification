@@ -18,13 +18,13 @@ HISTORY_NAME: Final[str] = "history.json"
 FINAL_DIR: Final[str] = "final"
 
 
-SAMPLERATE: Final[int] = 22100
-DURATION: Final[float] = 4.0
-N_SAMPLES: Final[int] = int(DURATION * SAMPLERATE)
+SAMPLERATE: Final[int] = 22100#Hz
+DURATION: Final[float] = 4.0#s
+N_SAMPLES: Final[int] = int(DURATION * SAMPLERATE)#kpl
 
-WIN_SIZE: Final[float] = 0.032
-HOP_SIZE: Final[float] = WIN_SIZE / 2
-N_MFCC: Final[int] = 40
+WIN_SIZE: Final[float] = 0.032#s
+HOP_SIZE: Final[float] = WIN_SIZE / 2#s
+N_MFCC: Final[int] = 40#kpl
 
 
 SETTINGS: Final[Settings] = Settings(SAMPLERATE, N_SAMPLES, WIN_SIZE, HOP_SIZE, N_MFCC)
