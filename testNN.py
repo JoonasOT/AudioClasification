@@ -68,7 +68,7 @@ def main():
     else:
         # If we imported from memory we still have to initialize the labels
         # to get predictions etc
-        model.importLabelsFrom(validateDirPath)
+        model.importLabelsFrom(trainDirPath)
 
     # Predictions:
     testPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, OWN_DIR) if USE_FINAL else validateDirPath
