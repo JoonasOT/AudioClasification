@@ -1,5 +1,3 @@
-import sys
-
 from typing import Final
 
 from src.functions.file_management import WORKING_DIR, getFullPath
