@@ -73,7 +73,7 @@ def main():
     # Predictions:
     testPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, OWN_DIR) if USE_FINAL else validateDirPath
     for prediction in model.predictionsFor(testPath):
-        correct = prediction.gotLabel == prediction.correctLabel if HIGHLIGHT_INCORRECT else True
+        correct = prediction.gotLabel == prediction.correctLabel or not HIGHLIGHT_INCORRECT
         print(prediction, file=sys.stdout if correct else sys.stderr)
 
 
