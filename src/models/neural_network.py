@@ -50,13 +50,15 @@ class Prediction(NamedTuple):
 
     def __str__(self):
         HIGHLIGHT = '\033[1;4;97m'
+        WRONG = '\033[1;31m'
         NORM = '\033[0;0m'
-        Values = [
+        COLOR = WRONG if self.gotLabel != self.correctLabel else NORM
+        Values = [COLOR + v + NORM for v in [
             self.gotLabel.rjust(4),
             self.correctLabel.rjust(4),
             f'{np.max(self.weights) * 100:.2f}'.rjust(6) + "%",
             self.file
-        ]
+        ]]
         Labels = [HIGHLIGHT + v + NORM for v in ["Got", "Was", "Confidence", "File"]]
         return "Pred[" + ", ".join([f"{v}: {Values[i]}" for i, v in enumerate(Labels)]) + "]"
 

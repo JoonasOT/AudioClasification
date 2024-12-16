@@ -36,8 +36,6 @@ def main():
     # Compute MFCCs or try to first get them from cache?
     COMPUTE_MFCCS_EVERYTIME = False
 
-    HIGHLIGHT_INCORRECT = True
-
     # Use the final folders?
     USE_FINAL = True
 
@@ -73,8 +71,7 @@ def main():
     # Predictions:
     testPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, OWN_DIR) if USE_FINAL else validateDirPath
     for prediction in model.predictionsFor(testPath):
-        correct = prediction.gotLabel == prediction.correctLabel or not HIGHLIGHT_INCORRECT
-        print(prediction, file=sys.stdout if correct else sys.stderr)
+        print(prediction)
 
 
 if __name__ == '__main__':
