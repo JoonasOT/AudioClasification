@@ -68,9 +68,14 @@ def main():
     # Predictions:
     testPath = getFullPath(WORKING_DIR, DATA_DIR, FINAL_DIR, OWN_DIR) if USE_FINAL else validateDirPath
     results: list[NN.Prediction] = []
+    correct_count = 0
     for prediction in model.predictionsFor(testPath):
         results.append(prediction)
         print(prediction)
+        if (prediction.isCorrect()):
+            correct_count += 1
+    print(f"\nAccuracy: {100 * (correct_count/len(results)):.2f}%")
+        
 
     # Save the predictions
     if SAVE_PREDICTIONS:

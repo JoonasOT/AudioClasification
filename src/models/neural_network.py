@@ -51,6 +51,9 @@ class Prediction(NamedTuple):
     def getConfidence(self) -> str:
         return f"{np.max(self.weights) * 100:.2f}"
 
+    def isCorrect(self) -> bool:
+        return self.gotLabel == self.correctLabel
+
     def __str__(self):
         HIGHLIGHT = '\033[1;4;97m'
         WRONG = '\033[1;31m'
