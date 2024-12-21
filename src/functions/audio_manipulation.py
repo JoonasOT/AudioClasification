@@ -89,10 +89,10 @@ def getSpectralCentroid(audio: Maybe[AudioSignal], nFFT: int = 20, winSize: floa
     return audio \
         .transform(spectralCentroid, False, nFFT, winSize, hopSize) \
         .run(
-            conditionalRunner(cond=plot, func=plotCentralSpectroid),
+            conditionalRunner(cond=plot, func=plotSpectralCentroid),
             False,
             audio.transform(AudioSignal.getTime).orElse(1.0),
-            "Spectral Density -- " + audio.transform(AudioSignal.getName).orElse("")
+            "Spectral Centroid -- " + audio.transform(AudioSignal.getName).orElse("")
         )
 
 

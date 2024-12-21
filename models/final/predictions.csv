@@ -1,4 +1,11 @@
 Got;Was;Confidence;File
+bus;bus;100.00;./data/final/own/bus/bus1.wav
+bus;bus;99.98;./data/final/own/bus/bus2.wav
+bus;bus;100.00;./data/final/own/bus/bus3.wav
+bus;bus;100.00;./data/final/own/bus/bus4.wav
+bus;bus;99.85;./data/final/own/bus/bus5.wav
+bus;bus;99.97;./data/final/own/bus/bus6.wav
+bus;bus;99.92;./data/final/own/bus/bus7.wav
 tram;tram;98.90;./data/final/own/tram/tram1.wav
 tram;tram;100.00;./data/final/own/tram/tram11.wav
 tram;tram;99.99;./data/final/own/tram/tram12.wav

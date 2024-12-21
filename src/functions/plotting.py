@@ -42,7 +42,7 @@ def plotSpectrogram(spectrogram: np.ndarray, maxF: float, maxT: float, title: st
     plt.title(title)
 
 
-def plotCentralSpectroid(centroid: np.ndarray, tMax: float, title: str = "") -> None:
+def plotSpectralCentroid(centroid: np.ndarray, tMax: float, title: str = "") -> None:
     if centroid.shape[1] != 1:
         centroid = centroid.T
     plt.figure()
