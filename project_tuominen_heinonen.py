@@ -571,7 +571,7 @@ def main():
     # Get Paths to folders containing data
     trainDirPath = "./data/final/train"
 
-    model.importLabelsFrom(trainDirPath)
+    model.importLabelsFrom("./data/final/own")
     # Predictions:
     testPath = "./data/final/own"
     results: list[Prediction] = []
